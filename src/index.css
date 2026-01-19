@@ -2,95 +2,99 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* 🌙 HAWKLY NIGHTS - Design System */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Core Background Colors */
+    --background: 216 28% 7%;
+    --foreground: 210 40% 98%;
+    
+    /* Card & Surfaces */
+    --card: 220 25% 10%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 220 25% 12%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* Primary - Electric Purple */
+    --primary: 270 91% 65%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - Deep Slate */
+    --secondary: 215 25% 15%;
+    --secondary-foreground: 210 40% 98%;
+    
+    /* Muted */
+    --muted: 215 20% 20%;
+    --muted-foreground: 215 20% 65%;
+    
+    /* Accent - Hot Pink */
+    --accent: 330 81% 60%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Borders & Inputs */
+    --border: 215 20% 18%;
+    --input: 215 20% 15%;
+    --ring: 270 91% 65%;
+    
+    --radius: 0.75rem;
+    
+    /* === HAWKLY MARKER COLORS === */
+    
+    /* 🔥 ON FIRE - Vibrant Purple */
+    --marker-fire: 270 91% 65%;
+    --marker-fire-glow: 270 91% 65%;
+    
+    /* ⚡ POPPING OFF - Hot Pink */
+    --marker-popping: 330 81% 60%;
+    --marker-popping-glow: 330 81% 60%;
+    
+    /* 🌟 HOTTEST SPOT - Electric Orange */
+    --marker-hottest: 38 92% 50%;
+    --marker-hottest-glow: 38 92% 50%;
+    
+    /* ⭐ RISING STAR - Bright Blue */
+    --marker-rising: 217 91% 60%;
+    --marker-rising-glow: 217 91% 60%;
+    
+    /* 📍 ACTIVE - Emerald Green */
+    --marker-active: 160 84% 39%;
+    --marker-active-glow: 160 84% 39%;
+    
+    /* ○ QUIET - Muted Gray */
+    --marker-quiet: 215 14% 34%;
+    
+    /* 📍 USER LOCATION - Bright Blue */
+    --user-location: 217 91% 60%;
+    
+    /* Map Colors */
+    --map-background: 216 28% 7%;
+    --map-roads-major: 215 22% 27%;
+    --map-roads-minor: 217 33% 17%;
+    --map-water: 230 50% 10%;
+    --map-buildings: 220 22% 14%;
+    --map-labels: 215 20% 65%;
+    
+    /* Sidebar */
+    --sidebar-background: 220 25% 8%;
+    --sidebar-foreground: 210 40% 90%;
+    --sidebar-primary: 270 91% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 25% 15%;
+    --sidebar-accent-foreground: 210 40% 90%;
+    --sidebar-border: 215 20% 18%;
+    --sidebar-ring: 270 91% 65%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Same as root - always dark mode */
   }
 }
 
@@ -98,8 +102,189 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* === MARKER ANIMATIONS === */
+  
+  @keyframes pulse-fire {
+    0%, 100% { 
+      transform: scale(1); 
+      box-shadow: 0 0 20px hsl(var(--marker-fire-glow) / 0.6),
+                  0 0 40px hsl(var(--marker-fire-glow) / 0.4),
+                  0 0 60px hsl(var(--marker-fire-glow) / 0.2);
+    }
+    50% { 
+      transform: scale(1.15); 
+      box-shadow: 0 0 30px hsl(var(--marker-fire-glow) / 0.8),
+                  0 0 60px hsl(var(--marker-fire-glow) / 0.5),
+                  0 0 80px hsl(var(--marker-fire-glow) / 0.3);
+    }
+  }
+  
+  @keyframes pulse-popping {
+    0%, 100% { 
+      transform: scale(1); 
+      box-shadow: 0 0 15px hsl(var(--marker-popping-glow) / 0.6),
+                  0 0 30px hsl(var(--marker-popping-glow) / 0.4);
+    }
+    50% { 
+      transform: scale(1.12); 
+      box-shadow: 0 0 25px hsl(var(--marker-popping-glow) / 0.7),
+                  0 0 50px hsl(var(--marker-popping-glow) / 0.4);
+    }
+  }
+  
+  @keyframes pulse-hottest {
+    0%, 100% { 
+      transform: scale(1); 
+      box-shadow: 0 0 25px hsl(var(--marker-hottest-glow) / 0.7),
+                  0 0 50px hsl(var(--marker-hottest-glow) / 0.5),
+                  0 0 75px hsl(var(--marker-hottest-glow) / 0.3);
+    }
+    50% { 
+      transform: scale(1.18); 
+      box-shadow: 0 0 35px hsl(var(--marker-hottest-glow) / 0.9),
+                  0 0 70px hsl(var(--marker-hottest-glow) / 0.6),
+                  0 0 100px hsl(var(--marker-hottest-glow) / 0.4);
+    }
+  }
+  
+  @keyframes pulse-rising {
+    0%, 100% { 
+      transform: scale(1); 
+      box-shadow: 0 0 12px hsl(var(--marker-rising-glow) / 0.5),
+                  0 0 25px hsl(var(--marker-rising-glow) / 0.3);
+    }
+    50% { 
+      transform: scale(1.08); 
+      box-shadow: 0 0 20px hsl(var(--marker-rising-glow) / 0.6),
+                  0 0 40px hsl(var(--marker-rising-glow) / 0.4);
+    }
+  }
+  
+  @keyframes pulse-user {
+    0%, 100% { 
+      transform: scale(1);
+      box-shadow: 0 0 0 0 hsl(var(--user-location) / 0.7);
+    }
+    50% { 
+      transform: scale(1.05);
+      box-shadow: 0 0 0 20px hsl(var(--user-location) / 0);
+    }
+  }
+  
+  @keyframes ring-expand {
+    0% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }
+  
+  /* Marker Classes */
+  .marker-fire {
+    @apply bg-[hsl(var(--marker-fire))] rounded-full;
+    animation: pulse-fire 1s ease-in-out infinite;
+  }
+  
+  .marker-popping {
+    @apply bg-[hsl(var(--marker-popping))] rounded-full;
+    animation: pulse-popping 1.5s ease-in-out infinite;
+  }
+  
+  .marker-hottest {
+    @apply bg-[hsl(var(--marker-hottest))] rounded-full;
+    animation: pulse-hottest 2s ease-in-out infinite;
+  }
+  
+  .marker-rising {
+    @apply bg-[hsl(var(--marker-rising))] rounded-full;
+    animation: pulse-rising 2.5s ease-in-out infinite;
+  }
+  
+  .marker-active {
+    @apply bg-[hsl(var(--marker-active))] rounded-full;
+    box-shadow: 0 0 15px hsl(var(--marker-active-glow) / 0.5);
+  }
+  
+  .marker-quiet {
+    @apply bg-[hsl(var(--marker-quiet))] rounded-full;
+  }
+  
+  .user-location {
+    @apply bg-[hsl(var(--user-location))] rounded-full border-4 border-white;
+    animation: pulse-user 2s ease-in-out infinite;
+  }
+  
+  .user-location-ring {
+    @apply absolute inset-0 rounded-full bg-[hsl(var(--user-location))];
+    animation: ring-expand 2s ease-out infinite;
+  }
+  
+  /* Glass Effect */
+  .glass {
+    @apply bg-card/80 backdrop-blur-xl border border-white/10;
+  }
+  
+  .glass-strong {
+    @apply bg-card/90 backdrop-blur-2xl border border-white/15;
+  }
+  
+  /* Category Chips */
+  .category-chip {
+    @apply px-4 py-2 rounded-full text-sm font-medium transition-all duration-200;
+    @apply bg-secondary text-muted-foreground hover:bg-secondary/80;
+  }
+  
+  .category-chip-active {
+    @apply bg-primary text-primary-foreground shadow-lg;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+  }
+  
+  /* Reaction Buttons */
+  .reaction-btn {
+    @apply p-3 rounded-xl transition-all duration-200 hover:scale-110;
+    @apply bg-secondary/50 hover:bg-secondary;
+  }
+  
+  .reaction-btn-active {
+    @apply scale-110;
+  }
+  
+  /* Navigation Bar */
+  .nav-item {
+    @apply flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-200;
+    @apply text-muted-foreground hover:text-foreground;
+  }
+  
+  .nav-item-active {
+    @apply text-primary;
+  }
+}
+
+@layer utilities {
+  .text-gradient-fire {
+    @apply bg-gradient-to-r from-[hsl(var(--marker-fire))] to-[hsl(var(--marker-popping))] bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-[hsl(var(--marker-fire))] via-[hsl(var(--marker-popping))] to-[hsl(var(--marker-hottest))] bg-clip-text text-transparent;
+  }
+  
+  .glow-primary {
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
+  }
+  
+  .glow-accent {
+    box-shadow: 0 0 30px hsl(var(--accent) / 0.4);
   }
 }
