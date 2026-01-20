@@ -2,14 +2,17 @@ import { useState, useMemo, useEffect } from 'react';
 import { mockVenues } from '@/data/mockVenues';
 import { LeafletMap } from './LeafletMap';
 import { VenueCard } from './VenueCard';
+import { FloatingSearchBar } from './FloatingSearchBar';
 import { Venue, ReactionType } from '@/types/venue';
 
 interface MapViewProps {
   searchQuery: string;
   selectedCategory: string;
+  onSearchChange: (value: string) => void;
+  onCategoryChange: (category: string) => void;
 }
 
-export function MapView({ searchQuery, selectedCategory }: MapViewProps) {
+export function MapView({ searchQuery, selectedCategory, onSearchChange, onCategoryChange }: MapViewProps) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | undefined>();
 
@@ -39,17 +42,17 @@ export function MapView({ searchQuery, selectedCategory }: MapViewProps) {
       if (searchQuery && !venue.name.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
       }
-      
+
       // Filter by category
       if (selectedCategory !== 'all' && venue.category !== selectedCategory) {
         return false;
       }
-      
+
       // Only show social places
       if (venue.place_type !== 'social') {
         return false;
       }
-      
+
       return true;
     });
   }, [searchQuery, selectedCategory]);
@@ -73,6 +76,15 @@ export function MapView({ searchQuery, selectedCategory }: MapViewProps) {
 
   return (
     <div className="relative w-full h-full">
+      {/* Floating Search & Filters */}
+      <FloatingSearchBar
+        searchValue={searchQuery}
+        onSearchChange={onSearchChange}
+        selectedCategory={selectedCategory}
+        onCategoryChange={onCategoryChange}
+      />
+
+      {/* Full-bleed Map */}
       <LeafletMap
         venues={filteredVenues}
         selectedVenue={selectedVenue}
