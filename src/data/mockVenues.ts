@@ -172,8 +172,8 @@ export const mockVenues: Venue[] = [
   },
 ];
 
+// Social categories (main nightlife focus)
 export const categories = [
-  { id: 'all', label: 'All', icon: '✨' },
   { id: 'bar', label: 'Bars', icon: '🍺' },
   { id: 'nightclub', label: 'Clubs', icon: '🎉' },
   { id: 'restaurant', label: 'Food', icon: '🍔' },
@@ -181,4 +181,15 @@ export const categories = [
   { id: 'entertainment', label: 'Entertainment', icon: '🎭' },
   { id: 'brewery', label: 'Breweries', icon: '🍻' },
   { id: 'live_music', label: 'Live Music', icon: '🎵' },
+];
+
+// Utility categories (hidden in "More" dropdown)
+export const utilityCategories = [
+  { id: 'atm', label: 'ATMs/Banks', icon: '🏧' },
+  { id: 'gas', label: 'Gas Stations', icon: '⛽' },
+  { id: 'emergency', label: 'Emergency', icon: '🚨' },
+  { id: 'parking', label: 'Parking', icon: '🅿️' },
+  { id: 'parks', label: 'Parks', icon: '🌳' },
+  { id: 'events', label: 'Events', icon: '🎟️' },
+  { id: 'college', label: 'Colleges', icon: '🎓' },
 ];

@@ -1,7 +1,7 @@
-import { Search, X } from 'lucide-react';
+import { Search, X, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { categories } from '@/data/mockVenues';
+import { categories, utilityCategories } from '@/data/mockVenues';
 
 interface FloatingSearchBarProps {
   searchValue: string;
@@ -17,6 +17,9 @@ export function FloatingSearchBar({
   onCategoryChange,
 }: FloatingSearchBarProps) {
   const [isFocused, setIsFocused] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+
+  const isUtilityCategory = utilityCategories.some((c) => c.id === selectedCategory);
 
   return (
     <div className="absolute top-4 left-0 right-0 z-[1000] space-y-2 px-4">
@@ -50,14 +53,17 @@ export function FloatingSearchBar({
         )}
       </div>
 
-      {/* Horizontal Scrolling Category Chips (Google Maps style) */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
+      {/* Centered Category Chips */}
+      <div className="flex justify-center gap-2 flex-wrap">
         {categories.map((category) => (
           <button
             key={category.id}
-            onClick={() => onCategoryChange(category.id)}
+            onClick={() => {
+              onCategoryChange(category.id);
+              setShowMore(false);
+            }}
             className={cn(
-              'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md flex-shrink-0',
+              'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
               selectedCategory === category.id
                 ? 'bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/50'
                 : 'hover:bg-secondary/80'
@@ -67,7 +73,46 @@ export function FloatingSearchBar({
             <span>{category.label}</span>
           </button>
         ))}
+
+        {/* More Button */}
+        <button
+          onClick={() => setShowMore(!showMore)}
+          className={cn(
+            'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
+            (showMore || isUtilityCategory)
+              ? 'bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/50'
+              : 'hover:bg-secondary/80'
+          )}
+        >
+          <span>📍</span>
+          <span>More</span>
+          <ChevronDown className={cn('w-3 h-3 transition-transform', showMore && 'rotate-180')} />
+        </button>
       </div>
+
+      {/* Utility Categories Dropdown */}
+      {showMore && (
+        <div className="flex justify-center gap-2 flex-wrap animate-fade-in">
+          {utilityCategories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => {
+                onCategoryChange(category.id);
+                setShowMore(false);
+              }}
+              className={cn(
+                'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
+                selectedCategory === category.id
+                  ? 'bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/50'
+                  : 'hover:bg-secondary/80'
+              )}
+            >
+              <span>{category.icon}</span>
+              <span>{category.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
