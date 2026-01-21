@@ -121,10 +121,12 @@ const createUserMarkerElement = (): HTMLElement => {
 };
 
 export function MapTilerMap({ venues, selectedVenue, onVenueSelect, userLocation }: MapTilerMapProps) {
-  const mapRef = useRef<Map | null>(null);
+  // NOTE: keep refs loosely typed to avoid occasional TS toolchain recursion issues
+  // with MapLibre/MapTiler types.
+  const mapRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const markersRef = useRef<globalThis.Map<string, Marker>>(new globalThis.Map());
-  const userMarkerRef = useRef<Marker | null>(null);
+  const markersRef = useRef<any>(new globalThis.Map());
+  const userMarkerRef = useRef<any>(null);
 
   // Initialize map
   useEffect(() => {
