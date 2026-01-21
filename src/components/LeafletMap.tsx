@@ -250,8 +250,13 @@ export function LeafletMap({ venues, selectedVenue, onVenueSelect, userLocation 
         </svg>
       </button>
 
-      {/* Custom styles for markers */}
+      {/* Custom styles for markers and ultra-dark map */}
       <style>{`
+        /* Ultra-dark map tiles */
+        .leaflet-tile-pane {
+          filter: brightness(0.7) saturate(0.9);
+        }
+        
         @keyframes userPulse {
           0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
           50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
