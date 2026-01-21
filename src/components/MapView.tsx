@@ -3,6 +3,7 @@ import { mockVenues } from '@/data/mockVenues';
 import { LeafletMap } from './LeafletMap';
 import { VenueCard } from './VenueCard';
 import { FloatingSearchBar } from './FloatingSearchBar';
+import { MapStyleSwitcher, MapStyle } from './MapStyleSwitcher';
 import { Venue, ReactionType } from '@/types/venue';
 
 interface MapViewProps {
@@ -15,6 +16,7 @@ interface MapViewProps {
 export function MapView({ searchQuery, selectedCategory, onSearchChange, onCategoryChange }: MapViewProps) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | undefined>();
+  const [mapStyle, setMapStyle] = useState<MapStyle>('streets-dark');
 
   // Get user location
   useEffect(() => {
@@ -90,7 +92,13 @@ export function MapView({ searchQuery, selectedCategory, onSearchChange, onCateg
         selectedVenue={selectedVenue}
         onVenueSelect={setSelectedVenue}
         userLocation={userLocation}
+        mapStyle={mapStyle}
       />
+
+      {/* Map Style Switcher */}
+      <div className="absolute bottom-40 right-4 z-[1000]">
+        <MapStyleSwitcher currentStyle={mapStyle} onStyleChange={setMapStyle} />
+      </div>
 
       {/* Venue Card Popup */}
       {selectedVenue && (

@@ -3,12 +3,15 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Venue } from '@/types/venue';
 import { cn } from '@/lib/utils';
+import { MapStyle, getMapTilerUrl } from './MapStyleSwitcher';
 
 interface LeafletMapProps {
   venues: Venue[];
   selectedVenue: Venue | null;
   onVenueSelect: (venue: Venue | null) => void;
   userLocation?: { lat: number; lng: number };
+  mapStyle?: MapStyle;
+  onRecenter?: () => void;
 }
 
 // Get marker color based on hot streak
@@ -125,11 +128,12 @@ const createUserIcon = () => {
   });
 };
 
-export function LeafletMap({ venues, selectedVenue, onVenueSelect, userLocation }: LeafletMapProps) {
+export function LeafletMap({ venues, selectedVenue, onVenueSelect, userLocation, mapStyle = 'streets-dark' }: LeafletMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const userMarkerRef = useRef<L.Marker | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -147,18 +151,17 @@ export function LeafletMap({ venues, selectedVenue, onVenueSelect, userLocation 
       attributionControl: false,
     });
 
-    // Add MapTiler dark tile layer
-    L.tileLayer('https://api.maptiler.com/maps/streets-v2-dark/{z}/{x}/{y}.png?key=sBCotOB5AWbR0C8uxgb9', {
+    // Add initial tile layer
+    const tileLayer = L.tileLayer(getMapTilerUrl(mapStyle), {
       tileSize: 512,
       zoomOffset: -1,
       maxZoom: 19,
       attribution: '© <a href="https://www.maptiler.com/copyright/">MapTiler</a> © <a href="https://www.openstreetmap.org/copyright">OSM</a>',
     }).addTo(map);
+    tileLayerRef.current = tileLayer;
 
     // Add zoom control to bottom right
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    
 
     mapRef.current = map;
 
@@ -167,6 +170,21 @@ export function LeafletMap({ venues, selectedVenue, onVenueSelect, userLocation 
       mapRef.current = null;
     };
   }, []);
+
+  // Update tile layer when style changes
+  useEffect(() => {
+    if (!mapRef.current || !tileLayerRef.current) return;
+
+    // Remove old layer and add new one
+    tileLayerRef.current.remove();
+    const newTileLayer = L.tileLayer(getMapTilerUrl(mapStyle), {
+      tileSize: 512,
+      zoomOffset: -1,
+      maxZoom: 19,
+      attribution: '© <a href="https://www.maptiler.com/copyright/">MapTiler</a> © <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    }).addTo(mapRef.current);
+    tileLayerRef.current = newTileLayer;
+  }, [mapStyle]);
 
   // Update user location marker
   useEffect(() => {
