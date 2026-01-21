@@ -46,30 +46,33 @@
     
     --radius: 0.75rem;
     
-    /* === HAWKLY MARKER COLORS === */
+    /* === HAWKLY POI CATEGORY COLORS === */
     
-    /* 🔥 ON FIRE - Vibrant Purple */
-    --marker-fire: 270 91% 65%;
-    --marker-fire-glow: 270 91% 65%;
+    /* Social & Nightlife */
+    --poi-bar: 36 100% 56%;           /* #FFB020 Amber/Warm Gold */
+    --poi-nightclub: 262 91% 66%;     /* #8B5CF6 Electric Purple */
+    --poi-lounge: 168 76% 50%;        /* #2DD4BF Deep Teal */
+    --poi-bar-grill: 27 96% 61%;      /* #FB923C Burnt Orange */
+    --poi-restaurant: 0 84% 60%;      /* #EF4444 Crimson Red */
+    --poi-coffee: 32 100% 33%;        /* #A16207 Soft Brown/Mocha */
+    --poi-brewery: 36 100% 56%;       /* Same as bar */
+    --poi-sports-bar: 27 96% 61%;     /* Same as bar-grill */
+    --poi-live-music: 262 91% 66%;    /* Same as nightclub */
     
-    /* ⚡ POPPING OFF - Hot Pink */
-    --marker-popping: 330 81% 60%;
-    --marker-popping-glow: 330 81% 60%;
+    /* Entertainment & Events */
+    --poi-events: 330 81% 60%;        /* #EC4899 Hot Pink/Magenta */
+    --poi-entertainment: 198 93% 60%; /* #38BDF8 Sky Blue */
+    --poi-sports-venue: 142 71% 45%;  /* #22C55E Athletic Green */
     
-    /* 🌟 HOTTEST SPOT - Electric Orange */
-    --marker-hottest: 38 92% 50%;
-    --marker-hottest-glow: 38 92% 50%;
-    
-    /* ⭐ RISING STAR - Bright Blue */
-    --marker-rising: 217 91% 60%;
-    --marker-rising-glow: 217 91% 60%;
-    
-    /* 📍 ACTIVE - Emerald Green */
-    --marker-active: 160 84% 39%;
-    --marker-active-glow: 160 84% 39%;
-    
-    /* ○ QUIET - Muted Gray */
-    --marker-quiet: 215 14% 34%;
+    /* Public & Utility */
+    --poi-parks: 142 76% 36%;         /* #16A34A Nature Green */
+    --poi-college: 224 76% 33%;       /* #1E3A8A Navy Blue */
+    --poi-landmarks: 218 11% 65%;     /* #9CA3AF Stone Gray */
+    --poi-parking: 217 19% 47%;       /* #64748B Slate Gray */
+    --poi-gas: 82 85% 56%;            /* #A3E635 Yellow-Green */
+    --poi-atm: 173 80% 40%;           /* #14B8A6 Muted Blue-Green */
+    --poi-emergency: 0 74% 50%;       /* #DC2626 Alert Red */
+    --poi-more: 220 13% 91%;          /* #E5E7EB Neutral White/Light Gray */
     
     /* 📍 USER LOCATION - Bright Blue */
     --user-location: 217 91% 60%;

@@ -11,16 +11,36 @@ interface LeafletMapProps {
   userLocation?: { lat: number; lng: number };
 }
 
-// Get marker color based on hot streak
-const getMarkerColor = (hotStreak: string) => {
-  switch (hotStreak) {
-    case 'hottest_spot': return 'hsl(38, 92%, 50%)';
-    case 'on_fire': return 'hsl(271, 91%, 65%)';
-    case 'popping_off': return 'hsl(330, 81%, 60%)';
-    case 'rising_star': return 'hsl(217, 91%, 60%)';
-    case 'active': return 'hsl(160, 84%, 39%)';
-    default: return 'hsl(220, 9%, 46%)';
-  }
+// Get marker color based on category (Hawkly POI Color System)
+const getCategoryColor = (category: string): string => {
+  const colors: Record<string, string> = {
+    // Social & Nightlife
+    bar: '#FFB020',           // Amber/Warm Gold
+    nightclub: '#8B5CF6',     // Electric Purple
+    lounge: '#2DD4BF',        // Deep Teal
+    bar_grill: '#FB923C',     // Burnt Orange
+    restaurant: '#EF4444',    // Crimson Red
+    coffee: '#A16207',        // Soft Brown/Mocha
+    brewery: '#FFB020',       // Same as bar
+    sports_bar: '#FB923C',    // Same as bar-grill
+    live_music: '#8B5CF6',    // Same as nightclub
+    
+    // Entertainment & Events
+    events: '#EC4899',        // Hot Pink/Magenta
+    entertainment: '#38BDF8', // Sky Blue
+    sports_venue: '#22C55E',  // Athletic Green
+    
+    // Public & Utility
+    parks: '#16A34A',         // Nature Green
+    college: '#1E3A8A',       // Navy Blue
+    landmarks: '#9CA3AF',     // Stone Gray
+    parking: '#64748B',       // Slate Gray
+    gas: '#A3E635',           // Yellow-Green
+    atm: '#14B8A6',           // Muted Blue-Green
+    emergency: '#DC2626',     // Alert Red
+  };
+  
+  return colors[category] || '#E5E7EB'; // Default to neutral gray
 };
 
 // Get marker size based on hot streak
@@ -56,13 +76,15 @@ const getCategoryEmoji = (category: string) => {
 
 // Create custom icon for venue
 const createVenueIcon = (venue: Venue, isSelected: boolean) => {
-  const color = getMarkerColor(venue.hot_streak);
+  const color = getCategoryColor(venue.category);
   const size = getMarkerSize(venue.hot_streak, venue.current_crowd_count);
   const emoji = getCategoryEmoji(venue.category);
   const scale = isSelected ? 1.3 : 1;
   const finalSize = size * scale;
   
+  // Hot venues get stronger glow effects
   const isHot = ['hottest_spot', 'on_fire', 'popping_off', 'rising_star'].includes(venue.hot_streak);
+  const glowIntensity = isHot ? { inner: 20, outer: 40 } : { inner: 10, outer: 20 };
   
   return L.divIcon({
     className: 'venue-marker',
@@ -75,8 +97,8 @@ const createVenueIcon = (venue: Venue, isSelected: boolean) => {
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 0 ${isHot ? '20px' : '10px'} ${color}80,
-                    0 0 ${isHot ? '40px' : '20px'} ${color}40;
+        box-shadow: 0 0 ${glowIntensity.inner}px ${color}80,
+                    0 0 ${glowIntensity.outer}px ${color}40;
         border: 2px solid rgba(255,255,255,0.3);
         cursor: pointer;
         transition: transform 0.2s ease;
