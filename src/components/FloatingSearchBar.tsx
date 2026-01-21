@@ -53,7 +53,7 @@ export function FloatingSearchBar({
         )}
       </div>
 
-      {/* Centered Category Chips - Toggle Select */}
+      {/* Centered Category Chips - Toggle Select with POI Colors */}
       <div className="flex justify-center gap-2 flex-wrap">
         {categories.map((category) => {
           const isSelected = selectedCategories.has(category.id);
@@ -64,9 +64,13 @@ export function FloatingSearchBar({
               className={cn(
                 'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
                 isSelected
-                  ? 'bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/50'
+                  ? 'text-white shadow-lg'
                   : 'hover:bg-secondary/80 opacity-70 hover:opacity-100'
               )}
+              style={isSelected ? {
+                backgroundColor: category.color,
+                boxShadow: `0 0 15px ${category.color}60`,
+              } : undefined}
             >
               <span>{category.icon}</span>
               <span>{category.label}</span>
@@ -80,7 +84,7 @@ export function FloatingSearchBar({
           className={cn(
             'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
             (showMore || hasUtilitySelected)
-              ? 'bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/50'
+              ? 'bg-[#E5E7EB] text-gray-800 shadow-lg'
               : 'hover:bg-secondary/80 opacity-70 hover:opacity-100'
           )}
         >
@@ -93,24 +97,28 @@ export function FloatingSearchBar({
       {/* Utility Categories Dropdown */}
       {showMore && (
         <div className="flex justify-center gap-2 flex-wrap animate-fade-in">
-          {utilityCategories.map((category) => {
-            const isSelected = selectedCategories.has(category.id);
-            return (
-              <button
-                key={category.id}
-                onClick={() => onCategoryToggle(category.id)}
-                className={cn(
-                  'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
-                  isSelected
-                    ? 'bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/50'
-                    : 'hover:bg-secondary/80 opacity-70 hover:opacity-100'
-                )}
-              >
-                <span>{category.icon}</span>
-                <span>{category.label}</span>
-              </button>
-            );
-          })}
+        {utilityCategories.map((category) => {
+          const isSelected = selectedCategories.has(category.id);
+          return (
+            <button
+              key={category.id}
+              onClick={() => onCategoryToggle(category.id)}
+              className={cn(
+                'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
+                isSelected
+                  ? 'text-white shadow-lg'
+                  : 'hover:bg-secondary/80 opacity-70 hover:opacity-100'
+              )}
+              style={isSelected ? {
+                backgroundColor: category.color,
+                boxShadow: `0 0 15px ${category.color}60`,
+              } : undefined}
+            >
+              <span>{category.icon}</span>
+              <span>{category.label}</span>
+            </button>
+          );
+        })}
         </div>
       )}
     </div>

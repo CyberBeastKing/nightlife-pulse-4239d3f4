@@ -172,24 +172,26 @@ export const mockVenues: Venue[] = [
   },
 ];
 
-// Social categories (main nightlife focus)
+// Social & Nightlife categories with POI colors
 export const categories = [
-  { id: 'bar', label: 'Bars', icon: '🍺' },
-  { id: 'nightclub', label: 'Clubs', icon: '🎉' },
-  { id: 'restaurant', label: 'Food', icon: '🍔' },
-  { id: 'coffee', label: 'Coffee', icon: '☕' },
-  { id: 'entertainment', label: 'Entertainment', icon: '🎭' },
-  { id: 'brewery', label: 'Breweries', icon: '🍻' },
-  { id: 'live_music', label: 'Live Music', icon: '🎵' },
+  { id: 'bar', label: 'Bars', icon: '🍺', color: '#FFB020' },
+  { id: 'nightclub', label: 'Clubs', icon: '🎶', color: '#8B5CF6' },
+  { id: 'lounge', label: 'Lounges', icon: '🍸', color: '#2DD4BF' },
+  { id: 'restaurant', label: 'Food', icon: '🍽️', color: '#EF4444' },
+  { id: 'coffee', label: 'Coffee', icon: '☕', color: '#A16207' },
+  { id: 'entertainment', label: 'Entertainment', icon: '🎮', color: '#38BDF8' },
+  { id: 'live_music', label: 'Live Music', icon: '🎵', color: '#8B5CF6' },
 ];
 
 // Utility categories (hidden in "More" dropdown)
 export const utilityCategories = [
-  { id: 'atm', label: 'ATMs/Banks', icon: '🏧' },
-  { id: 'gas', label: 'Gas Stations', icon: '⛽' },
-  { id: 'emergency', label: 'Emergency', icon: '🚨' },
-  { id: 'parking', label: 'Parking', icon: '🅿️' },
-  { id: 'parks', label: 'Parks', icon: '🌳' },
-  { id: 'events', label: 'Events', icon: '🎟️' },
-  { id: 'college', label: 'Colleges', icon: '🎓' },
+  { id: 'events', label: 'Events', icon: '🎟️', color: '#EC4899' },
+  { id: 'sports_venue', label: 'Sports', icon: '🏟️', color: '#22C55E' },
+  { id: 'parks', label: 'Parks', icon: '🌳', color: '#16A34A' },
+  { id: 'college', label: 'Colleges', icon: '🏫', color: '#1E3A8A' },
+  { id: 'landmarks', label: 'Landmarks', icon: '🗿', color: '#9CA3AF' },
+  { id: 'parking', label: 'Parking', icon: '🅿️', color: '#64748B' },
+  { id: 'gas', label: 'Gas', icon: '⛽', color: '#A3E635' },
+  { id: 'atm', label: 'ATM/Banks', icon: '🏦', color: '#14B8A6' },
+  { id: 'emergency', label: 'Emergency', icon: '🚨', color: '#DC2626' },
 ];
