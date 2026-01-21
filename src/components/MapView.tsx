@@ -7,12 +7,12 @@ import { Venue, ReactionType } from '@/types/venue';
 
 interface MapViewProps {
   searchQuery: string;
-  selectedCategory: string;
+  selectedCategories: Set<string>;
   onSearchChange: (value: string) => void;
-  onCategoryChange: (category: string) => void;
+  onCategoryToggle: (categoryId: string) => void;
 }
 
-export function MapView({ searchQuery, selectedCategory, onSearchChange, onCategoryChange }: MapViewProps) {
+export function MapView({ searchQuery, selectedCategories, onSearchChange, onCategoryToggle }: MapViewProps) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | undefined>();
 
@@ -43,8 +43,9 @@ export function MapView({ searchQuery, selectedCategory, onSearchChange, onCateg
         return false;
       }
 
-      // Filter by category
-      if (selectedCategory !== 'all' && venue.category !== selectedCategory) {
+      // Filter by selected categories (if any are selected)
+      // If no categories selected, show all social venues
+      if (selectedCategories.size > 0 && !selectedCategories.has(venue.category)) {
         return false;
       }
 
@@ -55,7 +56,7 @@ export function MapView({ searchQuery, selectedCategory, onSearchChange, onCateg
 
       return true;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategories]);
 
   const handleReact = (type: ReactionType) => {
     console.log('Reacted with:', type);
@@ -80,8 +81,8 @@ export function MapView({ searchQuery, selectedCategory, onSearchChange, onCateg
       <FloatingSearchBar
         searchValue={searchQuery}
         onSearchChange={onSearchChange}
-        selectedCategory={selectedCategory}
-        onCategoryChange={onCategoryChange}
+        selectedCategories={selectedCategories}
+        onCategoryToggle={onCategoryToggle}
       />
 
       {/* Full-bleed Map with MapTiler dark tiles */}

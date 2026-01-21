@@ -6,20 +6,20 @@ import { categories, utilityCategories } from '@/data/mockVenues';
 interface FloatingSearchBarProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
-  selectedCategory: string;
-  onCategoryChange: (category: string) => void;
+  selectedCategories: Set<string>;
+  onCategoryToggle: (categoryId: string) => void;
 }
 
 export function FloatingSearchBar({
   searchValue,
   onSearchChange,
-  selectedCategory,
-  onCategoryChange,
+  selectedCategories,
+  onCategoryToggle,
 }: FloatingSearchBarProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [showMore, setShowMore] = useState(false);
 
-  const isUtilityCategory = utilityCategories.some((c) => c.id === selectedCategory);
+  const hasUtilitySelected = utilityCategories.some((c) => selectedCategories.has(c.id));
 
   return (
     <div className="absolute top-4 left-0 right-0 z-[1000] space-y-2 px-4">
@@ -53,35 +53,35 @@ export function FloatingSearchBar({
         )}
       </div>
 
-      {/* Centered Category Chips */}
+      {/* Centered Category Chips - Toggle Select */}
       <div className="flex justify-center gap-2 flex-wrap">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => {
-              onCategoryChange(category.id);
-              setShowMore(false);
-            }}
-            className={cn(
-              'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
-              selectedCategory === category.id
-                ? 'bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/50'
-                : 'hover:bg-secondary/80'
-            )}
-          >
-            <span>{category.icon}</span>
-            <span>{category.label}</span>
-          </button>
-        ))}
+        {categories.map((category) => {
+          const isSelected = selectedCategories.has(category.id);
+          return (
+            <button
+              key={category.id}
+              onClick={() => onCategoryToggle(category.id)}
+              className={cn(
+                'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
+                isSelected
+                  ? 'bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/50'
+                  : 'hover:bg-secondary/80 opacity-70 hover:opacity-100'
+              )}
+            >
+              <span>{category.icon}</span>
+              <span>{category.label}</span>
+            </button>
+          );
+        })}
 
         {/* More Button */}
         <button
           onClick={() => setShowMore(!showMore)}
           className={cn(
             'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
-            (showMore || isUtilityCategory)
+            (showMore || hasUtilitySelected)
               ? 'bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/50'
-              : 'hover:bg-secondary/80'
+              : 'hover:bg-secondary/80 opacity-70 hover:opacity-100'
           )}
         >
           <span>📍</span>
@@ -93,24 +93,24 @@ export function FloatingSearchBar({
       {/* Utility Categories Dropdown */}
       {showMore && (
         <div className="flex justify-center gap-2 flex-wrap animate-fade-in">
-          {utilityCategories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => {
-                onCategoryChange(category.id);
-                setShowMore(false);
-              }}
-              className={cn(
-                'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
-                selectedCategory === category.id
-                  ? 'bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/50'
-                  : 'hover:bg-secondary/80'
-              )}
-            >
-              <span>{category.icon}</span>
-              <span>{category.label}</span>
-            </button>
-          ))}
+          {utilityCategories.map((category) => {
+            const isSelected = selectedCategories.has(category.id);
+            return (
+              <button
+                key={category.id}
+                onClick={() => onCategoryToggle(category.id)}
+                className={cn(
+                  'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
+                  isSelected
+                    ? 'bg-primary text-primary-foreground shadow-lg ring-1 ring-primary/50'
+                    : 'hover:bg-secondary/80 opacity-70 hover:opacity-100'
+                )}
+              >
+                <span>{category.icon}</span>
+                <span>{category.label}</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
