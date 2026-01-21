@@ -144,8 +144,8 @@ export function LeafletMap({ venues, selectedVenue, onVenueSelect, userLocation 
       zoomControl: false,
     });
 
-    // Add MapTiler dark tiles
-    L.tileLayer('https://api.maptiler.com/maps/streets-v2-dark/{z}/{x}/{y}.png?key=sBCotOB5AWbR0C8uxgb9', {
+    // Add MapTiler Backdrop tiles (ultra-dark style)
+    L.tileLayer('https://api.maptiler.com/maps/backdrop-dark/{z}/{x}/{y}.png?key=sBCotOB5AWbR0C8uxgb9', {
       tileSize: 512,
       zoomOffset: -1,
       maxZoom: 19,
