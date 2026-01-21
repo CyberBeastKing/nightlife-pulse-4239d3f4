@@ -147,10 +147,12 @@ export function LeafletMap({ venues, selectedVenue, onVenueSelect, userLocation 
       attributionControl: false,
     });
 
-    // Add dark tile layer (CartoDB Dark Matter - free, no API key needed)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    // Add MapTiler dark tile layer
+    L.tileLayer('https://api.maptiler.com/maps/streets-v2-dark/{z}/{x}/{y}.png?key=sBCotOB5AWbR0C8uxgb9', {
+      tileSize: 512,
+      zoomOffset: -1,
       maxZoom: 19,
-      attribution: '© <a href="https://carto.com/">CARTO</a> © <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+      attribution: '© <a href="https://www.maptiler.com/copyright/">MapTiler</a> © <a href="https://www.openstreetmap.org/copyright">OSM</a>',
     }).addTo(map);
 
     // Add zoom control to bottom right
