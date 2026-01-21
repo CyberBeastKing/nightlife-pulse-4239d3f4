@@ -1,13 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { Map, MapStyle, config, Marker } from '@maptiler/sdk';
-import '@maptiler/sdk/dist/maptiler-sdk.css';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Venue } from '@/types/venue';
 import { cn } from '@/lib/utils';
 
-// Configure MapTiler API key
-config.apiKey = 'sBCotOB5AWbR0C8uxgb9';
-
-interface MapTilerMapProps {
+interface LeafletMapProps {
   venues: Venue[];
   selectedVenue: Venue | null;
   onVenueSelect: (venue: Venue | null) => void;
@@ -57,8 +54,8 @@ const getCategoryEmoji = (category: string) => {
   }
 };
 
-// Create marker element for venue
-const createVenueMarkerElement = (venue: Venue, isSelected: boolean): HTMLElement => {
+// Create custom icon for venue
+const createVenueIcon = (venue: Venue, isSelected: boolean) => {
   const color = getMarkerColor(venue.hot_streak);
   const size = getMarkerSize(venue.hot_streak, venue.current_crowd_count);
   const emoji = getCategoryEmoji(venue.category);
@@ -67,93 +64,102 @@ const createVenueMarkerElement = (venue: Venue, isSelected: boolean): HTMLElemen
   
   const isHot = ['hottest_spot', 'on_fire', 'popping_off', 'rising_star'].includes(venue.hot_streak);
   
-  const container = document.createElement('div');
-  container.className = 'venue-marker-container';
-  container.style.cssText = `
-    width: ${finalSize}px;
-    height: ${finalSize}px;
-    background: ${color};
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 ${isHot ? '20px' : '10px'} ${color}80,
-                0 0 ${isHot ? '40px' : '20px'} ${color}40;
-    border: 2px solid rgba(255,255,255,0.3);
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    font-size: ${finalSize * 0.45}px;
-  `;
-  container.textContent = emoji;
-  
-  return container;
-};
-
-// Create user location marker element
-const createUserMarkerElement = (): HTMLElement => {
-  const container = document.createElement('div');
-  container.innerHTML = `
-    <div class="user-marker" style="
-      width: 20px;
-      height: 20px;
-      background: hsl(217, 91%, 60%);
-      border-radius: 50%;
-      border: 3px solid white;
-      box-shadow: 0 0 15px hsl(217, 91%, 60%),
-                  0 0 30px hsla(217, 91%, 60%, 0.5);
-      position: relative;
-    ">
-      <div style="
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 40px;
-        height: 40px;
-        border: 2px solid hsl(217, 91%, 60%);
+  return L.divIcon({
+    className: 'venue-marker',
+    html: `
+      <div class="venue-marker-container" style="
+        width: ${finalSize}px;
+        height: ${finalSize}px;
+        background: ${color};
         border-radius: 50%;
-        animation: userPulse 2s infinite;
-        opacity: 0.6;
-      "></div>
-    </div>
-  `;
-  return container;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 ${isHot ? '20px' : '10px'} ${color}80,
+                    0 0 ${isHot ? '40px' : '20px'} ${color}40;
+        border: 2px solid rgba(255,255,255,0.3);
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        font-size: ${finalSize * 0.45}px;
+      ">
+        ${emoji}
+      </div>
+    `,
+    iconSize: [finalSize, finalSize],
+    iconAnchor: [finalSize / 2, finalSize / 2],
+  });
 };
 
-export function MapTilerMap({ venues, selectedVenue, onVenueSelect, userLocation }: MapTilerMapProps) {
-  // NOTE: keep refs loosely typed to avoid occasional TS toolchain recursion issues
-  // with MapLibre/MapTiler types.
-  const mapRef = useRef<any>(null);
+// Create user location icon
+const createUserIcon = () => {
+  return L.divIcon({
+    className: 'user-marker',
+    html: `
+      <div style="
+        width: 20px;
+        height: 20px;
+        background: hsl(217, 91%, 60%);
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 15px hsl(217, 91%, 60%),
+                    0 0 30px hsla(217, 91%, 60%, 0.5);
+        position: relative;
+      ">
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 40px;
+          height: 40px;
+          border: 2px solid hsl(217, 91%, 60%);
+          border-radius: 50%;
+          animation: userPulse 2s infinite;
+          opacity: 0.6;
+        "></div>
+      </div>
+    `,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
+};
+
+export function LeafletMap({ venues, selectedVenue, onVenueSelect, userLocation }: LeafletMapProps) {
+  const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const markersRef = useRef<any>(new globalThis.Map());
-  const userMarkerRef = useRef<any>(null);
+  const markersRef = useRef<Map<string, L.Marker>>(new Map());
+  const userMarkerRef = useRef<L.Marker | null>(null);
 
   // Initialize map
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
     // Default center (Cuyahoga Falls, OH)
-    const defaultCenter: [number, number] = [-81.4846, 41.1339]; // [lng, lat] for MapTiler
-    const center = userLocation ? [userLocation.lng, userLocation.lat] as [number, number] : defaultCenter;
+    const defaultCenter: L.LatLngExpression = [41.1339, -81.4846];
+    const center = userLocation ? [userLocation.lat, userLocation.lng] as L.LatLngExpression : defaultCenter;
 
-    const map = new Map({
-      container: containerRef.current,
-      style: MapStyle.BACKDROP.DARK,
+    const map = L.map(containerRef.current, {
       center,
       zoom: 13,
-      navigationControl: 'bottom-right',
-      geolocateControl: false,
+      zoomControl: false,
     });
+
+    // Add MapTiler dark tiles
+    L.tileLayer('https://api.maptiler.com/maps/streets-v2-dark/{z}/{x}/{y}.png?key=sBCotOB5AWbR0C8uxgb9', {
+      tileSize: 512,
+      zoomOffset: -1,
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    // Add zoom control to bottom right
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     mapRef.current = map;
 
     // Click on map to deselect
-    map.on('click', (e) => {
-      // Only deselect if not clicking on a marker
-      const target = e.originalEvent.target as HTMLElement;
-      if (!target.closest('.venue-marker-container')) {
-        onVenueSelect(null);
-      }
+    map.on('click', () => {
+      onVenueSelect(null);
     });
 
     return () => {
@@ -167,13 +173,12 @@ export function MapTilerMap({ venues, selectedVenue, onVenueSelect, userLocation
     if (!mapRef.current || !userLocation) return;
 
     if (userMarkerRef.current) {
-      userMarkerRef.current.setLngLat([userLocation.lng, userLocation.lat]);
+      userMarkerRef.current.setLatLng([userLocation.lat, userLocation.lng]);
     } else {
-      userMarkerRef.current = new Marker({
-        element: createUserMarkerElement(),
-      })
-        .setLngLat([userLocation.lng, userLocation.lat])
-        .addTo(mapRef.current);
+      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
+        icon: createUserIcon(),
+        zIndexOffset: 1000,
+      }).addTo(mapRef.current);
     }
   }, [userLocation]);
 
@@ -198,24 +203,18 @@ export function MapTilerMap({ venues, selectedVenue, onVenueSelect, userLocation
       const existingMarker = markersRef.current.get(venue.id);
 
       if (existingMarker) {
-        // Update existing marker element
-        const element = createVenueMarkerElement(venue, isSelected);
-        element.addEventListener('click', (e) => {
-          e.stopPropagation();
-          onVenueSelect(venue);
-        });
-        existingMarker.getElement().replaceWith(element);
+        // Update existing marker icon
+        existingMarker.setIcon(createVenueIcon(venue, isSelected));
       } else {
         // Create new marker
-        const element = createVenueMarkerElement(venue, isSelected);
-        element.addEventListener('click', (e) => {
-          e.stopPropagation();
-          onVenueSelect(venue);
-        });
-
-        const marker = new Marker({ element })
-          .setLngLat([venue.longitude, venue.latitude])
-          .addTo(map);
+        const marker = L.marker([venue.latitude, venue.longitude], {
+          icon: createVenueIcon(venue, isSelected),
+        })
+          .addTo(map)
+          .on('click', (e) => {
+            L.DomEvent.stopPropagation(e);
+            onVenueSelect(venue);
+          });
 
         markersRef.current.set(venue.id, marker);
       }
@@ -226,9 +225,9 @@ export function MapTilerMap({ venues, selectedVenue, onVenueSelect, userLocation
   const handleRecenter = () => {
     if (!mapRef.current) return;
     const center = userLocation 
-      ? [userLocation.lng, userLocation.lat] as [number, number]
-      : [-81.4846, 41.1339] as [number, number];
-    mapRef.current.flyTo({ center, zoom: 14, duration: 1000 });
+      ? [userLocation.lat, userLocation.lng] as L.LatLngExpression
+      : [41.1339, -81.4846] as L.LatLngExpression;
+    mapRef.current.flyTo(center, 14, { duration: 1 });
   };
 
   return (
@@ -262,7 +261,7 @@ export function MapTilerMap({ venues, selectedVenue, onVenueSelect, userLocation
           transform: scale(1.15);
         }
 
-        .maplibregl-ctrl-group {
+        .leaflet-control-zoom {
           background: hsl(var(--card)) !important;
           backdrop-filter: blur(12px);
           border-radius: 12px !important;
@@ -270,31 +269,27 @@ export function MapTilerMap({ venues, selectedVenue, onVenueSelect, userLocation
           overflow: hidden;
         }
         
-        .maplibregl-ctrl-group button {
+        .leaflet-control-zoom a {
           background: transparent !important;
           color: hsl(var(--foreground)) !important;
           border: none !important;
           width: 36px !important;
           height: 36px !important;
+          line-height: 36px !important;
         }
         
-        .maplibregl-ctrl-group button:hover {
+        .leaflet-control-zoom a:hover {
           background: hsl(var(--secondary)) !important;
         }
-
-        .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
-          filter: invert(1);
-        }
         
-        .maplibregl-ctrl-attrib {
+        .leaflet-control-attribution {
           background: hsl(var(--background) / 0.8) !important;
           color: hsl(var(--muted-foreground)) !important;
           font-size: 10px !important;
           padding: 2px 6px !important;
-          border-radius: 4px !important;
         }
         
-        .maplibregl-ctrl-attrib a {
+        .leaflet-control-attribution a {
           color: hsl(var(--primary)) !important;
         }
       `}</style>

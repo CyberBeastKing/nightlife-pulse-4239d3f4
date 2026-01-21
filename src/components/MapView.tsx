@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { mockVenues } from '@/data/mockVenues';
-import { MapTilerMap } from './MapTilerMap';
+import { LeafletMap } from './LeafletMap';
 import { VenueCard } from './VenueCard';
 import { FloatingSearchBar } from './FloatingSearchBar';
 import { Venue, ReactionType } from '@/types/venue';
@@ -84,8 +84,8 @@ export function MapView({ searchQuery, selectedCategory, onSearchChange, onCateg
         onCategoryChange={onCategoryChange}
       />
 
-      {/* Full-bleed Map with Backdrop Dark style */}
-      <MapTilerMap
+      {/* Full-bleed Map with MapTiler dark tiles */}
+      <LeafletMap
         venues={filteredVenues}
         selectedVenue={selectedVenue}
         onVenueSelect={setSelectedVenue}
