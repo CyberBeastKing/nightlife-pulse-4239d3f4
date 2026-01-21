@@ -4,8 +4,20 @@ import { BottomNav } from '@/components/BottomNav';
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<'map' | 'discover' | 'chat' | 'profile'>('map');
+
+  const handleCategoryToggle = (categoryId: string) => {
+    setSelectedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -14,9 +26,9 @@ const Index = () => {
         {activeTab === 'map' && (
           <MapView
             searchQuery={searchQuery}
-            selectedCategory={selectedCategory}
+            selectedCategories={selectedCategories}
             onSearchChange={setSearchQuery}
-            onCategoryChange={setSelectedCategory}
+            onCategoryToggle={handleCategoryToggle}
           />
         )}
 
