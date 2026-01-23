@@ -188,38 +188,43 @@ export function FloatingSearchBar({
         )}
       </div>
 
-      {/* Centered Category Chips - Toggle Select with POI Colors */}
-      <div className="flex justify-center gap-2 flex-wrap">
-        {primaryCategories.map((category) => {
-          const isSelected = selectedCategories.has(category.id);
-          return (
-            <button
-              key={category.id}
-              onClick={() => onCategoryToggle(category.id)}
-              className={cn(
-                'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
-                isSelected
-                  ? 'text-white shadow-lg'
-                  : 'hover:bg-secondary/80 opacity-70 hover:opacity-100'
-              )}
-              style={isSelected ? {
-                backgroundColor: category.color,
-                boxShadow: `0 0 15px ${category.color}60`,
-              } : undefined}
-            >
-              <span>{category.icon}</span>
-              <span>{category.label}</span>
-            </button>
-          );
-        })}
+      {/* Centered Category Chips - Horizontal scroll with fixed More button */}
+      <div className="flex items-center gap-2">
+        {/* Scrollable chips container */}
+        <div className="flex-1 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 pb-1">
+            {primaryCategories.map((category) => {
+              const isSelected = selectedCategories.has(category.id);
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => onCategoryToggle(category.id)}
+                  className={cn(
+                    'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md flex-shrink-0',
+                    isSelected
+                      ? 'text-white shadow-lg'
+                      : 'hover:bg-secondary/80 opacity-70 hover:opacity-100'
+                  )}
+                  style={isSelected ? {
+                    backgroundColor: category.color,
+                    boxShadow: `0 0 15px ${category.color}60`,
+                  } : undefined}
+                >
+                  <span>{category.icon}</span>
+                  <span>{category.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-        {/* More Button */}
+        {/* Fixed More Button */}
         <button
           onClick={() => setShowMore(!showMore)}
           className={cn(
-            'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md',
+            'glass px-3 py-2 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap shadow-md flex-shrink-0',
             (showMore || hasUtilitySelected)
-              ? 'bg-[#E5E7EB] text-gray-800 shadow-lg'
+              ? 'bg-muted text-foreground shadow-lg'
               : 'hover:bg-secondary/80 opacity-70 hover:opacity-100'
           )}
         >
