@@ -417,16 +417,71 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
           }
           
           .venue-popup .leaflet-popup-tip-container {
-            width: 30px;
-            height: 15px;
+            width: 40px;
+            height: 50px;
+            overflow: visible;
           }
           
           .venue-popup .leaflet-popup-tip {
-            background: hsl(var(--card));
-            border: 1px solid hsl(var(--border));
-            border-top: none;
-            border-left: none;
+            background: transparent;
+            border: none;
             box-shadow: none;
+            width: 0;
+            height: 0;
+          }
+          
+          /* Animated connector arrow */
+          .venue-popup .leaflet-popup-tip-container::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 40px;
+            background: linear-gradient(
+              to bottom,
+              hsl(var(--primary)),
+              hsl(var(--primary) / 0.3)
+            );
+            animation: connectorPulse 2s ease-in-out infinite;
+          }
+          
+          /* Arrow head at the bottom */
+          .venue-popup .leaflet-popup-tip-container::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid hsl(var(--primary));
+            animation: arrowPulse 2s ease-in-out infinite;
+          }
+          
+          @keyframes connectorPulse {
+            0%, 100% { 
+              opacity: 0.6;
+              box-shadow: 0 0 4px hsl(var(--primary) / 0.3);
+            }
+            50% { 
+              opacity: 1;
+              box-shadow: 0 0 10px hsl(var(--primary) / 0.6);
+            }
+          }
+          
+          @keyframes arrowPulse {
+            0%, 100% { 
+              opacity: 0.7;
+              filter: drop-shadow(0 0 2px hsl(var(--primary) / 0.3));
+            }
+            50% { 
+              opacity: 1;
+              filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.8));
+            }
           }
         `}</style>
       </div>
