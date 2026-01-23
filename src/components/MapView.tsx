@@ -53,20 +53,18 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         return false;
       }
 
-      // Filter by selected categories (if any are selected)
-      // Note: External DB venues may all have 'bar' category - if only 'bar' is selected,
-      // show all venues since they default to 'bar'
-      if (selectedCategories.size > 0) {
-        // If bar is the only selected category and venue is 'bar', allow it
-        // This covers the case where external DB doesn't have proper categories yet
-        const hasMatch = selectedCategories.has(venue.category);
-        if (!hasMatch) {
-          return false;
-        }
-      }
-
       // Only show social places
       if (venue.place_type !== 'social') {
+        return false;
+      }
+
+      // Filter by selected categories - if none selected, show nothing
+      // If categories are selected, only show venues matching those categories
+      if (selectedCategories.size === 0) {
+        return false; // No categories selected = no markers shown
+      }
+      
+      if (!selectedCategories.has(venue.category)) {
         return false;
       }
 
