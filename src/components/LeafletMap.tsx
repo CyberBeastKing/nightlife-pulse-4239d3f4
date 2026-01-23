@@ -54,15 +54,15 @@ const getCategoryColor = (category: string): string => {
 // Get marker size based on hot streak
 const getMarkerSize = (hotStreak: string, crowdCount: number) => {
   const baseSize = {
-    hottest_spot: 28,
-    on_fire: 24,
-    popping_off: 22,
-    rising_star: 20,
-    active: 18,
-    quiet: 14,
-  }[hotStreak] || 16;
+    hottest_spot: 38,
+    on_fire: 34,
+    popping_off: 30,
+    rising_star: 28,
+    active: 26,
+    quiet: 22,
+  }[hotStreak] || 24;
   
-  const crowdBonus = Math.min(crowdCount / 20, 6);
+  const crowdBonus = Math.min(crowdCount / 20, 8);
   return baseSize + crowdBonus;
 };
 
@@ -416,75 +416,8 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
             width: auto !important;
           }
           
-          /*
-            IMPORTANT: Leaflet's default tip-container width is 40px and it also
-            uses a fixed -20px margin-left in its own CSS. If we change the width
-            here, the tip (and our connector) will shift horizontally and won't
-            line up with the marker.
-          */
           .venue-popup .leaflet-popup-tip-container {
-            width: 40px;
-            height: 44px;
-            overflow: visible;
-            pointer-events: none;
-          }
-          
-          .venue-popup .leaflet-popup-tip {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            width: 0;
-            height: 0;
-          }
-          
-          /* Animated connector line (anchored to Leaflet's actual tip point) */
-          .venue-popup .leaflet-popup-tip-container::before {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 0;
-            transform: translateX(-50%);
-            width: 2px;
-            height: calc(100% - 8px);
-            background: hsl(var(--primary));
-            animation: connectorPulse 2s ease-in-out infinite;
-          }
-          
-          /* Arrow head pointing down at marker */
-          .venue-popup .leaflet-popup-tip-container::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            bottom: 0;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-top: 6px solid hsl(var(--primary));
-            animation: arrowPulse 2s ease-in-out infinite;
-          }
-          
-          @keyframes connectorPulse {
-            0%, 100% { 
-              opacity: 0.7;
-              box-shadow: 0 0 3px hsl(var(--primary) / 0.4);
-            }
-            50% { 
-              opacity: 1;
-              box-shadow: 0 0 8px hsl(var(--primary) / 0.7);
-            }
-          }
-          
-          @keyframes arrowPulse {
-            0%, 100% { 
-              opacity: 0.8;
-              filter: drop-shadow(0 0 2px hsl(var(--primary) / 0.4));
-            }
-            50% { 
-              opacity: 1;
-              filter: drop-shadow(0 0 5px hsl(var(--primary)));
-            }
+            display: none;
           }
         `}</style>
       </div>

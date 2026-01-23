@@ -176,12 +176,12 @@ export const mockVenues: Venue[] = [
 export const categories = [
   { id: 'bar', label: 'Bars', icon: '🍺', color: '#FFB020' },
   { id: 'nightclub', label: 'Clubs', icon: '🎶', color: '#8B5CF6' },
-  { id: 'lounge', label: 'Lounges', icon: '🍸', color: '#2DD4BF' },
+  { id: 'lounge', label: 'Lounges', icon: '🛋️', color: '#2DD4BF' },
   { id: 'restaurant', label: 'Food', icon: '🍽️', color: '#EF4444' },
   { id: 'coffee', label: 'Coffee', icon: '☕', color: '#A16207' },
-  { id: 'events', label: 'Events', icon: '🎉', color: '#EC4899' },
+  { id: 'events', label: 'Events', icon: '🎟️', color: '#EC4899' },
   { id: 'sports_venue', label: 'Sports Venues', icon: '🏟️', color: '#22C55E' },
-  { id: 'entertainment', label: 'Entertainment', icon: '🎮', color: '#38BDF8' },
+  { id: 'entertainment', label: 'Entertainment 🎮', icon: '🎬', color: '#38BDF8' },
   { id: 'live_music', label: 'Live Music', icon: '🎵', color: '#8B5CF6' },
 ];
 
