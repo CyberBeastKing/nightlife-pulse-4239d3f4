@@ -16,15 +16,15 @@ export function CategoryFilters({ selectedCategory, onSelect }: CategoryFiltersP
             key={category.id}
             onClick={() => onSelect(category.id)}
             className={cn(
-              'category-chip whitespace-nowrap flex items-center gap-2 transition-all duration-200',
-              isSelected && 'category-chip-active'
+              'whitespace-nowrap flex items-center gap-2 transition-all duration-200 px-4 py-2 rounded-full font-medium text-sm',
+              isSelected ? 'scale-105' : 'opacity-80 hover:opacity-100'
             )}
-            style={isSelected ? {
+            style={{
               backgroundColor: category.color,
               borderColor: category.color,
               color: '#fff',
-              boxShadow: `0 0 12px ${category.color}60`,
-            } : undefined}
+              boxShadow: isSelected ? `0 0 16px ${category.color}80` : `0 0 8px ${category.color}40`,
+            }}
           >
             <span>{category.icon}</span>
             <span>{category.label}</span>
