@@ -87,40 +87,74 @@ serve(async (req) => {
       categoryMap.set(cat.id, { id: cat.id, name: cat.name });
     });
 
-    // Format categories for the frontend
-    const defaultIcons: Record<string, string> = {
-      bar: '🍺', nightclub: '🎶', lounge: '🍸', restaurant: '🍽️', 
-      coffee: '☕', entertainment: '🎮', live_music: '🎵', brewery: '🍻',
-      sports_bar: '🏈', events: '🎟️', parks: '🌳', college: '🏫',
+    // Hawkly POI Color System (canonical)
+    const HAWKLY: Record<string, { label?: string; icon: string; color: string }> = {
+      bar: { icon: '🍺', color: '#FFB020' },
+      nightclub: { icon: '🎵', color: '#8B5CF6' },
+      lounge: { icon: '🛋️', color: '#2DD4BF' },
+      bar_grill: { icon: '🍔', color: '#FB923C' },
+      restaurant: { icon: '🍽️', color: '#EF4444' },
+      coffee: { icon: '☕', color: '#A16207' },
+      events: { icon: '🎟️', color: '#EC4899' },
+      entertainment: { label: 'Entertainment 🎮', icon: '🎬', color: '#38BDF8' },
+      sports_venue: { icon: '🏟️', color: '#22C55E' },
+      live_music: { icon: '🎵', color: '#8B5CF6' },
+      brewery: { icon: '🍺', color: '#FFB020' },
+      sports_bar: { icon: '🍔', color: '#FB923C' },
     };
-    const defaultColors: Record<string, string> = {
-      bar: '#FFB020', nightclub: '#8B5CF6', lounge: '#2DD4BF', restaurant: '#EF4444',
-      coffee: '#A16207', entertainment: '#38BDF8', live_music: '#8B5CF6', brewery: '#F59E0B',
-      sports_bar: '#22C55E', events: '#EC4899', parks: '#16A34A', college: '#1E3A8A',
+
+    const slugify = (value: string) =>
+      value
+        .toLowerCase()
+        .trim()
+        .replace(/&/g, ' and ')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+
+    const toHawklyKey = (name?: string): string | null => {
+      if (!name) return null;
+      const s = slugify(name);
+
+      // Strong synonyms from your UI copy
+      if (s === 'bars' || s === 'bar') return 'bar';
+      if (s === 'nightclubs' || s === 'nightclub' || s === 'clubs') return 'nightclub';
+      if (s === 'lounges' || s === 'lounge') return 'lounge';
+      if (s === 'bar_and_grill' || s === 'bar_grill' || s === 'bar_and_grills') return 'bar_grill';
+      if (s === 'restaurants' || s === 'restaurant' || s === 'food') return 'restaurant';
+      if (s === 'coffee_shops' || s === 'coffee_shop' || s === 'coffee') return 'coffee';
+      if (s === 'events' || s === 'event') return 'events';
+      if (s === 'entertainment' || s === 'arcades' || s === 'cinemas' || s === 'bowling') return 'entertainment';
+      if (s === 'sports_venues' || s === 'sports_venue' || s === 'sports') return 'sports_venue';
+      if (s === 'live_music' || s === 'music') return 'live_music';
+      if (s === 'brewery' || s === 'breweries') return 'brewery';
+      if (s === 'sports_bar' || s === 'sports_bars') return 'sports_bar';
+
+      return null;
     };
 
     const categories = (rawCategories || []).map((cat: any) => {
-      const nameKey = cat.name?.toLowerCase().replace(/\s+/g, '_') || 'bar';
+      const hawklyKey = toHawklyKey(cat.name);
+      const hawkly = hawklyKey ? HAWKLY[hawklyKey] : null;
+
       return {
         id: cat.id,
-        label: cat.name || 'Unknown',
-        icon: cat.icon || defaultIcons[nameKey] || '📍',
-        color: cat.color || defaultColors[nameKey] || '#FFB020',
+        label: hawkly?.label ?? cat.name ?? 'Unknown',
+        icon: hawkly?.icon ?? cat.icon ?? '•',
+        color: hawkly?.color ?? cat.color ?? '#64748B',
       };
     });
 
     const venues = (rawPlaces || []).map((place: any) => {
       const coords = parseWKB(place.location);
-      // Use the category name (normalized to snake_case) for color/emoji lookup
-      const categoryName = place.category?.name?.toLowerCase().replace(/\s+/g, '_') || 'bar';
-      
+      const categoryId = place.category?.id || null;
+
       return {
         id: place.id,
         name: place.google_name || place.name || 'Unknown Venue',
         address: place.google_address || place.address,
         latitude: coords?.lat || 0,
         longitude: coords?.lng || 0,
-        category: categoryName, // Use normalized category name for color/emoji lookup
+        category: categoryId, // keep UUID so filtering matches chip selections
         place_type: place.place_type || 'social',
         hot_streak: place.hot_streak || 'quiet',
         current_crowd_count: place.current_crowd_count || 0,
