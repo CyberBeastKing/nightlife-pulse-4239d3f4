@@ -35,7 +35,7 @@ export interface Venue {
     curious: number;
     dead: number;
   };
-  vibe: {
+  vibe: string | {
     sound_level: 'quiet' | 'moderate' | 'loud' | 'very_loud';
     energy: 'chill' | 'lively' | 'electric';
     crowd_type: 'casual' | 'mixed' | 'dressed_up';

@@ -39,7 +39,12 @@ const reactions: { type: ReactionType; emoji: string; label: string }[] = [
 
 export function VenueCard({ venue, onClose, onReact, onCheckIn, onNavigate }: VenueCardProps) {
   const badge = hotStreakBadge[venue.hot_streak];
-  const soundLevel = soundLevelIcons[venue.vibe.sound_level];
+  
+  // Handle both object vibe (expected) and string vibe (from external DB)
+  const vibeData = typeof venue.vibe === 'string' 
+    ? { sound_level: venue.vibe.toLowerCase() as keyof typeof soundLevelIcons, energy: 'lively' as const }
+    : venue.vibe;
+  const soundLevel = soundLevelIcons[vibeData.sound_level] || soundLevelIcons.moderate;
   
   return (
     <div className="glass-strong rounded-3xl p-5 animate-slide-up max-w-sm w-full">
@@ -111,7 +116,7 @@ export function VenueCard({ venue, onClose, onReact, onCheckIn, onNavigate }: Ve
             <Zap className="w-4 h-4 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">Energy</span>
           </div>
-          <span className="text-sm font-medium">{energyLabels[venue.vibe.energy]}</span>
+          <span className="text-sm font-medium">{energyLabels[vibeData.energy] || '🎉 Lively'}</span>
         </div>
       </div>
       
