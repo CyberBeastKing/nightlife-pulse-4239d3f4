@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import type { PlaceChat, PlaceChatDetails, ChatMessage, SenderLabel } from '@/components/chat/types';
+import type { PlaceChat, PlaceChatDetails, ChatMessage, SenderLabel, ReportReason, UserStrike } from '@/components/chat/types';
 
 // Hawkly POI styling lookup
 const CATEGORY_STYLES: Record<string, { emoji: string; color: string }> = {
@@ -54,6 +54,100 @@ export function useVenueChat(venueId?: string) {
   const [venueChatId, setVenueChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isBanned, setIsBanned] = useState(false);
+  const [strikes, setStrikes] = useState<UserStrike[]>([]);
+
+  // Check if user is banned
+  const checkBanStatus = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error: banError } = await supabase
+        .from('user_chat_bans')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (banError) throw banError;
+      
+      if (data) {
+        const isCurrentlyBanned = !data.expires_at || new Date(data.expires_at) > new Date();
+        setIsBanned(isCurrentlyBanned);
+      }
+    } catch (err) {
+      console.error('Error checking ban status:', err);
+    }
+  }, [user]);
+
+  // Fetch user's strikes
+  const fetchStrikes = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error: strikesError } = await supabase
+        .from('user_strikes')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (strikesError) throw strikesError;
+      
+      const mapped: UserStrike[] = (data || []).map((s: any) => ({
+        id: s.id,
+        reason: s.reason,
+        status: s.status,
+        strikeNumber: s.strike_number,
+        createdAt: new Date(s.created_at),
+      }));
+      
+      setStrikes(mapped);
+    } catch (err) {
+      console.error('Error fetching strikes:', err);
+    }
+  }, [user]);
+
+  // Report a message
+  const reportMessage = useCallback(async (
+    messageId: string,
+    reason: ReportReason,
+    details?: string
+  ): Promise<boolean> => {
+    if (!user) {
+      setError('You must be logged in to report messages');
+      return false;
+    }
+
+    try {
+      const { error: reportError } = await supabase
+        .from('message_reports')
+        .insert({
+          message_id: messageId,
+          reporter_id: user.id,
+          reason: reason,
+          details: details?.trim() || null,
+        });
+
+      if (reportError) {
+        if (reportError.code === '23505') {
+          setError('You have already reported this message');
+        } else {
+          throw reportError;
+        }
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error('Error reporting message:', err);
+      setError('Failed to submit report');
+      return false;
+    }
+  }, [user]);
+
+  // Check ban status on mount
+  useEffect(() => {
+    checkBanStatus();
+    fetchStrikes();
+  }, [checkBanStatus, fetchStrikes]);
 
   // Get or create venue chat room
   const getOrCreateVenueChat = useCallback(async (
@@ -252,11 +346,15 @@ export function useVenueChat(venueId?: string) {
     venueChatId,
     isLoading,
     error,
+    isBanned,
+    strikes,
     setVenueChatId,
     getOrCreateVenueChat,
     fetchMessages,
     sendMessage,
     voteMessage,
+    reportMessage,
+    checkBanStatus,
   };
 }
 

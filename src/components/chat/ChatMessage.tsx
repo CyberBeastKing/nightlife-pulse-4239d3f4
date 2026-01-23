@@ -1,10 +1,12 @@
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { ChatMessage as ChatMessageType, SenderLabel } from './types';
+import { useState } from 'react';
+import { ThumbsUp, ThumbsDown, Flag } from 'lucide-react';
+import { ReportModal } from './ReportModal';
+import type { ChatMessage as ChatMessageType, SenderLabel, ReportReason } from './types';
 
 interface ChatMessageProps {
   message: ChatMessageType;
   onVote?: (messageId: string, type: 'up' | 'down') => void;
+  onReport?: (messageId: string, reason: ReportReason, details?: string) => Promise<boolean>;
 }
 
 const senderLabels: Record<SenderLabel, string> = {
@@ -14,7 +16,8 @@ const senderLabels: Record<SenderLabel, string> = {
   regular: 'Here often',
 };
 
-export function ChatMessage({ message, onVote }: ChatMessageProps) {
+export function ChatMessage({ message, onVote, onReport }: ChatMessageProps) {
+  const [showReportModal, setShowReportModal] = useState(false);
   const timeAgo = getTimeAgo(message.timestamp);
 
   const handleUpvote = () => {
@@ -23,6 +26,11 @@ export function ChatMessage({ message, onVote }: ChatMessageProps) {
 
   const handleDownvote = () => {
     onVote?.(message.id, 'down');
+  };
+
+  const handleReport = async (reason: ReportReason, details?: string): Promise<boolean> => {
+    if (!onReport) return false;
+    return onReport(message.id, reason, details);
   };
 
   return (
@@ -42,20 +50,31 @@ export function ChatMessage({ message, onVote }: ChatMessageProps) {
           <p className="text-sm text-foreground leading-relaxed">{message.content}</p>
         </div>
 
-        {/* Vote buttons - show on hover */}
+        {/* Action buttons - show on hover */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button 
             onClick={handleUpvote}
             className="p-1.5 rounded-full hover:bg-secondary/50 text-muted-foreground hover:text-primary transition-colors"
+            title="Helpful"
           >
             <ThumbsUp className="w-3.5 h-3.5" />
           </button>
           <button 
             onClick={handleDownvote}
             className="p-1.5 rounded-full hover:bg-secondary/50 text-muted-foreground hover:text-destructive transition-colors"
+            title="Not helpful"
           >
             <ThumbsDown className="w-3.5 h-3.5" />
           </button>
+          {onReport && (
+            <button 
+              onClick={() => setShowReportModal(true)}
+              className="p-1.5 rounded-full hover:bg-secondary/50 text-muted-foreground hover:text-destructive transition-colors"
+              title="Report message"
+            >
+              <Flag className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -67,6 +86,14 @@ export function ChatMessage({ message, onVote }: ChatMessageProps) {
           </span>
         </div>
       )}
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onSubmit={handleReport}
+        messagePreview={message.content}
+      />
     </div>
   );
 }

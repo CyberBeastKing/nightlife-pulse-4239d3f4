@@ -58,6 +58,51 @@ export type Database = {
           },
         ]
       }
+      message_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          message_id: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_id: string
+          reviewed: boolean
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          message_id: string
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_id: string
+          reviewed?: boolean
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          message_id?: string
+          reason?: Database["public"]["Enums"]["report_reason"]
+          reporter_id?: string
+          reviewed?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reports_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "anonymous_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reports_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -87,6 +132,75 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      user_chat_bans: {
+        Row: {
+          banned_at: string
+          expires_at: string | null
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          banned_at?: string
+          expires_at?: string | null
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          banned_at?: string
+          expires_at?: string | null
+          id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_strikes: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string | null
+          reason: Database["public"]["Enums"]["report_reason"]
+          status: Database["public"]["Enums"]["strike_status"]
+          strike_number: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          reason: Database["public"]["Enums"]["report_reason"]
+          status?: Database["public"]["Enums"]["strike_status"]
+          strike_number: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          reason?: Database["public"]["Enums"]["report_reason"]
+          status?: Database["public"]["Enums"]["strike_status"]
+          strike_number?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_strikes_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "anonymous_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_strikes_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       venue_chats: {
         Row: {
@@ -182,15 +296,35 @@ export type Database = {
     }
     Functions: {
       cleanup_expired_messages: { Args: never; Returns: undefined }
+      get_user_strike_count: {
+        Args: { target_user_id: string }
+        Returns: number
+      }
       is_over_21: { Args: { dob: string }; Returns: boolean }
+      is_user_chat_banned: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
+      process_report_and_issue_strike: {
+        Args: { issue_strike?: boolean; report_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       gender_identity: "male" | "female" | "lgbtq"
+      report_reason:
+        | "harassment"
+        | "spam"
+        | "inappropriate_content"
+        | "threats"
+        | "personal_info"
+        | "other"
       sender_label:
         | "someone_nearby"
         | "just_arrived"
         | "leaving_soon"
         | "regular"
+      strike_status: "warning" | "strike" | "ban"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -319,12 +453,21 @@ export const Constants = {
   public: {
     Enums: {
       gender_identity: ["male", "female", "lgbtq"],
+      report_reason: [
+        "harassment",
+        "spam",
+        "inappropriate_content",
+        "threats",
+        "personal_info",
+        "other",
+      ],
       sender_label: [
         "someone_nearby",
         "just_arrived",
         "leaving_soon",
         "regular",
       ],
+      strike_status: ["warning", "strike", "ban"],
     },
   },
 } as const
