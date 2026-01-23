@@ -4,6 +4,7 @@ import { LeafletMap } from './LeafletMap';
 import { VenueCard } from './VenueCard';
 import { FloatingSearchBar } from './FloatingSearchBar';
 import { Venue, ReactionType } from '@/types/venue';
+import { useExternalVenues } from '@/hooks/useExternalVenues';
 
 interface MapViewProps {
   searchQuery: string;
@@ -15,6 +16,14 @@ interface MapViewProps {
 export function MapView({ searchQuery, selectedCategories, onSearchChange, onCategoryToggle }: MapViewProps) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | undefined>();
+  
+  // Fetch venues from external Supabase, fallback to mock data
+  const { data: externalVenues, isLoading, error } = useExternalVenues();
+  const venues = externalVenues && externalVenues.length > 0 ? externalVenues : mockVenues;
+
+  if (error) {
+    console.warn('Using mock data - external fetch failed:', error);
+  }
 
   // Get user location
   useEffect(() => {
@@ -37,7 +46,7 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
   }, []);
 
   const filteredVenues = useMemo(() => {
-    return mockVenues.filter((venue) => {
+    return venues.filter((venue) => {
       // Filter by search query
       if (searchQuery && !venue.name.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
@@ -56,7 +65,7 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
 
       return true;
     });
-  }, [searchQuery, selectedCategories]);
+  }, [venues, searchQuery, selectedCategories]);
 
   const handleReact = (type: ReactionType) => {
     console.log('Reacted with:', type);
