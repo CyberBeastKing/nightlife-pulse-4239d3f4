@@ -8,8 +8,10 @@ import { FriendsSection } from './FriendsSection';
 import { RecommendedSection } from './RecommendedSection';
 import { NearbySection } from './NearbySection';
 import { FilterModal, DiscoverFilters, defaultFilters } from './FilterModal';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Venue } from '@/types/venue';
 import { toast } from 'sonner';
+import { Flame, Star, Users, MapPin, Calendar } from 'lucide-react';
 
 interface DiscoverViewProps {
   onNavigateToMap?: (venue: Venue) => void;
@@ -19,6 +21,7 @@ export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
   const { data: externalData, isLoading } = useExternalVenues();
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<DiscoverFilters>(defaultFilters);
+  const [activeTab, setActiveTab] = useState('trending');
   
   const venues = externalData?.venues && externalData.venues.length > 0 
     ? externalData.venues 
@@ -26,6 +29,15 @@ export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
   const categories = externalData?.categories && externalData.categories.length > 0 
     ? externalData.categories 
     : fallbackCategories;
+
+  // Calculate stats from venues
+  const hotStreakOrder = ['hottest_spot', 'on_fire', 'popping_off', 'rising_star'];
+  const trendingVenues = venues.filter(v => hotStreakOrder.includes(v.hot_streak));
+  const trendingCount = trendingVenues.length || 4;
+  const activeUsers = venues.reduce((sum, v) => sum + (v.current_crowd_count || 0), 0);
+  const hottestSpot = trendingVenues.length > 0 
+    ? trendingVenues[0].name 
+    : venues[0]?.name || "Leo's Italian Social";
 
   const handleVenueClick = (venue: Venue) => {
     if (onNavigateToMap) {
@@ -77,35 +89,85 @@ export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
       <DiscoverHeader 
         onSearchClick={handleSearchClick} 
         onFilterClick={handleFilterClick}
+        trendingCount={trendingCount}
+        activeUsers={activeUsers}
+        hottestSpot={hottestSpot}
+        location="Akron, OH"
       />
       
-      <main className="pb-24">
-        {/* Section 1: Trending Now */}
-        <div className="pt-6">
-          <TrendingSection 
-            venues={venues} 
-            onVenueClick={handleVenueClick} 
-          />
+      {/* Tab Navigation */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="sticky top-[180px] z-40 bg-background/95 backdrop-blur-xl border-b border-border/30">
+          <TabsList className="w-full h-auto p-1 bg-transparent rounded-none justify-start gap-1 overflow-x-auto scrollbar-hide px-4">
+            <TabsTrigger 
+              value="trending" 
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground text-sm font-medium whitespace-nowrap"
+            >
+              <Flame className="w-4 h-4" />
+              Trending
+            </TabsTrigger>
+            <TabsTrigger 
+              value="events" 
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground text-sm font-medium whitespace-nowrap"
+            >
+              <Calendar className="w-4 h-4" />
+              Events
+            </TabsTrigger>
+            <TabsTrigger 
+              value="recommended" 
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground text-sm font-medium whitespace-nowrap"
+            >
+              <Star className="w-4 h-4" />
+              Recommended
+            </TabsTrigger>
+            <TabsTrigger 
+              value="friends" 
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground text-sm font-medium whitespace-nowrap"
+            >
+              <Users className="w-4 h-4" />
+              Friends
+            </TabsTrigger>
+            <TabsTrigger 
+              value="nearby" 
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground text-sm font-medium whitespace-nowrap"
+            >
+              <MapPin className="w-4 h-4" />
+              Nearby
+            </TabsTrigger>
+          </TabsList>
         </div>
 
-        {/* Section 2: Tonight's Events */}
-        <EventsSection onEventClick={handleEventClick} />
+        <main className="pb-24 pt-4">
+          <TabsContent value="trending" className="mt-0">
+            <TrendingSection 
+              venues={venues} 
+              onVenueClick={handleVenueClick} 
+            />
+          </TabsContent>
 
-        {/* Section 3: Where Your Friends Are */}
-        <FriendsSection onVenueClick={handleVenueIdClick} />
+          <TabsContent value="events" className="mt-0">
+            <EventsSection onEventClick={handleEventClick} />
+          </TabsContent>
 
-        {/* Section 4: Recommended For You */}
-        <RecommendedSection 
-          venues={venues}
-          onVenueClick={handleVenueClick}
-        />
+          <TabsContent value="recommended" className="mt-0">
+            <RecommendedSection 
+              venues={venues}
+              onVenueClick={handleVenueClick}
+            />
+          </TabsContent>
 
-        {/* Section 5: Near You (<2 miles) */}
-        <NearbySection 
-          venues={venues}
-          onVenueClick={handleVenueClick}
-        />
-      </main>
+          <TabsContent value="friends" className="mt-0">
+            <FriendsSection onVenueClick={handleVenueIdClick} />
+          </TabsContent>
+
+          <TabsContent value="nearby" className="mt-0">
+            <NearbySection 
+              venues={venues}
+              onVenueClick={handleVenueClick}
+            />
+          </TabsContent>
+        </main>
+      </Tabs>
 
       {/* Filter Modal */}
       <FilterModal
