@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
-import { MessageCircle, Filter, Clock } from 'lucide-react';
+import { MessageCircle, Filter, Clock, Loader2 } from 'lucide-react';
 import { PlaceChatCard } from './PlaceChatCard';
 import { PlaceChatRoom } from './PlaceChatRoom';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useActiveVenueChats } from '@/hooks/useVenueChat';
 import type { PlaceChat, PlaceChatDetails } from './types';
 import { Venue } from '@/types/venue';
 
@@ -35,6 +36,8 @@ const getCategoryStyle = (category: string) => {
 interface ChatViewProps {
   initialVenue?: Venue | null;
 }
+
+// Fallback mock data for when no real chats exist
 const mockPlaceChats: PlaceChat[] = [
   {
     id: 'chat-1',
@@ -69,80 +72,22 @@ const mockPlaceChats: PlaceChat[] = [
     recentMessageCount: 34,
     lastActivity: new Date(Date.now() - 1 * 60000),
   },
-  {
-    id: 'chat-4',
-    placeName: 'The Velvet Lounge',
-    category: 'lounge',
-    categoryEmoji: '🛋️',
-    categoryColor: '#2DD4BF',
-    crowdStatus: 'quiet',
-    distance: 1.2,
-    recentMessageCount: 4,
-    lastActivity: new Date(Date.now() - 15 * 60000),
-  },
-  {
-    id: 'chat-5',
-    placeName: 'Stadium Sports Bar',
-    category: 'sports_bar',
-    categoryEmoji: '🏟️',
-    categoryColor: '#22C55E',
-    crowdStatus: 'active',
-    distance: 1.5,
-    recentMessageCount: 8,
-    lastActivity: new Date(Date.now() - 8 * 60000),
-  },
 ];
 
-// Mock chat details with messages
-const getMockChatDetails = (chat: PlaceChat): PlaceChatDetails => ({
+// Get chat details for display
+const getChatDetails = (chat: PlaceChat): PlaceChatDetails => ({
   ...chat,
   activityTrend: chat.crowdStatus === 'busy' ? 'rising' : chat.crowdStatus === 'active' ? 'steady' : 'falling',
   crowdCount: chat.crowdStatus === 'busy' ? '25-35 people' : chat.crowdStatus === 'active' ? '12-18 people' : '5-8 people',
-  messages: [
-    {
-      id: 'msg-1',
-      content: 'DJ just switched genres, vibes are immaculate',
-      senderLabel: 'someone_nearby',
-      timestamp: new Date(Date.now() - 10 * 60000),
-      upvotes: 5,
-      downvotes: 0,
-    },
-    {
-      id: 'msg-2',
-      content: 'Line moving fast now',
-      senderLabel: 'just_arrived',
-      timestamp: new Date(Date.now() - 8 * 60000),
-      upvotes: 3,
-      downvotes: 0,
-    },
-    {
-      id: 'msg-3',
-      content: 'Upstairs is packed, downstairs way better',
-      senderLabel: 'regular',
-      timestamp: new Date(Date.now() - 5 * 60000),
-      upvotes: 8,
-      downvotes: 1,
-    },
-    {
-      id: 'msg-4',
-      content: 'Chill crowd tonight, definitely recommend',
-      senderLabel: 'leaving_soon',
-      timestamp: new Date(Date.now() - 2 * 60000),
-      upvotes: 2,
-      downvotes: 0,
-    },
-  ],
+  messages: [],
 });
-
-// Mock recently participated chats
-const mockMyChats: PlaceChat[] = [
-  mockPlaceChats[0],
-  mockPlaceChats[2],
-];
 
 export function ChatView({ initialVenue }: ChatViewProps) {
   const [selectedChat, setSelectedChat] = useState<PlaceChatDetails | null>(null);
   const [showFilter, setShowFilter] = useState(false);
+  
+  // Fetch real active chats from database
+  const { chats: realChats, isLoading } = useActiveVenueChats();
 
   // Handle initial venue from map popup chat button
   useEffect(() => {
@@ -159,18 +104,24 @@ export function ChatView({ initialVenue }: ChatViewProps) {
         recentMessageCount: Math.floor(Math.random() * 20) + 5,
         lastActivity: new Date(),
       };
-      const details = getMockChatDetails(venueChat);
+      const details = getChatDetails(venueChat);
       setSelectedChat(details);
     }
   }, [initialVenue]);
 
-  // Sort active chats by activity
+  // Use real chats if available, otherwise fallback to mock
+  const displayChats = useMemo(() => {
+    if (realChats.length > 0) return realChats;
+    return mockPlaceChats;
+  }, [realChats]);
+
+  // Sort by activity
   const sortedChats = useMemo(() => {
-    return [...mockPlaceChats].sort((a, b) => b.recentMessageCount - a.recentMessageCount);
-  }, []);
+    return [...displayChats].sort((a, b) => b.recentMessageCount - a.recentMessageCount);
+  }, [displayChats]);
 
   const handleOpenChat = (chat: PlaceChat) => {
-    const details = getMockChatDetails(chat);
+    const details = getChatDetails(chat);
     setSelectedChat(details);
   };
 
@@ -203,42 +154,37 @@ export function ChatView({ initialVenue }: ChatViewProps) {
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6">
-          {/* Active Place Chats */}
-          <section>
-            <div className="flex items-center gap-2 mb-3">
-              <MessageCircle className="w-4 h-4 text-primary" />
-              <h2 className="font-semibold text-foreground">Active Places</h2>
+          {/* Loading state */}
+          {isLoading && (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
-            <div className="space-y-3">
-              {sortedChats.map(chat => (
-                <PlaceChatCard
-                  key={chat.id}
-                  chat={chat}
-                  onClick={() => handleOpenChat(chat)}
-                />
-              ))}
-            </div>
-          </section>
+          )}
 
-          {/* My Active Chats */}
-          {mockMyChats.length > 0 && (
+          {/* Active Place Chats */}
+          {!isLoading && (
             <section>
               <div className="flex items-center gap-2 mb-3">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <h2 className="font-semibold text-foreground">Recently Participated</h2>
+                <MessageCircle className="w-4 h-4 text-primary" />
+                <h2 className="font-semibold text-foreground">Active Places</h2>
+                {realChats.length > 0 && (
+                  <span className="text-xs text-muted-foreground">• Live</span>
+                )}
               </div>
               <div className="space-y-3">
-                {mockMyChats.map(chat => (
+                {sortedChats.map(chat => (
                   <PlaceChatCard
-                    key={`my-${chat.id}`}
+                    key={chat.id}
                     chat={chat}
                     onClick={() => handleOpenChat(chat)}
                   />
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground/70 mt-2 text-center">
-                Auto-expires after 4 hours
-              </p>
+              {sortedChats.length === 0 && (
+                <p className="text-center text-muted-foreground text-sm py-4">
+                  No active chats nearby. Start one from a venue!
+                </p>
+              )}
             </section>
           )}
         </div>
