@@ -35,10 +35,12 @@ serve(async (req) => {
       console.error('Error fetching categories:', catError);
     }
 
-    // Fetch places with their category from the joined categories table
+    // Fetch only 'social' places - these are genuine nightlife venues
+    // 'exclude' and 'utility' place types are filtered out server-side for performance
     const { data: rawPlaces, error: rawError } = await externalSupabase
       .from('places')
-      .select('*, category:category_id(id, name)');
+      .select('*, category:category_id(id, name)')
+      .eq('place_type', 'social');
       
     if (rawError) {
       console.error('Error fetching places:', rawError);
