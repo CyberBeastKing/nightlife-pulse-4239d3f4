@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          downvotes: number
+          expires_at: string
+          id: string
+          sender_label: Database["public"]["Enums"]["sender_label"]
+          upvotes: number
+          user_id: string
+          venue_chat_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          downvotes?: number
+          expires_at?: string
+          id?: string
+          sender_label?: Database["public"]["Enums"]["sender_label"]
+          upvotes?: number
+          user_id: string
+          venue_chat_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          downvotes?: number
+          expires_at?: string
+          id?: string
+          sender_label?: Database["public"]["Enums"]["sender_label"]
+          upvotes?: number
+          user_id?: string
+          venue_chat_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_venue_chat_id_fkey"
+            columns: ["venue_chat_id"]
+            isOneToOne: false
+            referencedRelation: "venue_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -44,8 +88,73 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_chats: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          venue_id: string
+          venue_name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          venue_id: string
+          venue_name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          venue_id?: string
+          venue_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
+      anonymous_messages: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          downvotes: number | null
+          expires_at: string | null
+          id: string | null
+          sender_label: Database["public"]["Enums"]["sender_label"] | null
+          upvotes: number | null
+          venue_chat_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          downvotes?: number | null
+          expires_at?: string | null
+          id?: string | null
+          sender_label?: Database["public"]["Enums"]["sender_label"] | null
+          upvotes?: number | null
+          venue_chat_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          downvotes?: number | null
+          expires_at?: string | null
+          id?: string | null
+          sender_label?: Database["public"]["Enums"]["sender_label"] | null
+          upvotes?: number | null
+          venue_chat_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_venue_chat_id_fkey"
+            columns: ["venue_chat_id"]
+            isOneToOne: false
+            referencedRelation: "venue_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_profiles: {
         Row: {
           avatar_url: string | null
@@ -72,10 +181,16 @@ export type Database = {
       }
     }
     Functions: {
+      cleanup_expired_messages: { Args: never; Returns: undefined }
       is_over_21: { Args: { dob: string }; Returns: boolean }
     }
     Enums: {
       gender_identity: "male" | "female" | "lgbtq"
+      sender_label:
+        | "someone_nearby"
+        | "just_arrived"
+        | "leaving_soon"
+        | "regular"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -204,6 +319,12 @@ export const Constants = {
   public: {
     Enums: {
       gender_identity: ["male", "female", "lgbtq"],
+      sender_label: [
+        "someone_nearby",
+        "just_arrived",
+        "leaving_soon",
+        "regular",
+      ],
     },
   },
 } as const
