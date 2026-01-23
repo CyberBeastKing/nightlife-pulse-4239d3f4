@@ -19,36 +19,53 @@ export interface LeafletMapRef {
   flyTo: (lat: number, lng: number, zoom?: number) => void;
 }
 
-// Get marker color based on category (Hawkly POI Color System)
-const getCategoryColor = (category: string): string => {
-  const colors: Record<string, string> = {
-    // Social & Nightlife
-    bar: '#FFB020',           // Amber/Warm Gold
-    nightclub: '#8B5CF6',     // Electric Purple
-    lounge: '#2DD4BF',        // Deep Teal
-    bar_grill: '#FB923C',     // Burnt Orange
-    restaurant: '#EF4444',    // Crimson Red
-    coffee: '#A16207',        // Soft Brown/Mocha
-    brewery: '#FFB020',       // Same as bar
-    sports_bar: '#FB923C',    // Same as bar-grill
-    live_music: '#8B5CF6',    // Same as nightclub
-    
-    // Entertainment & Events
-    events: '#EC4899',        // Hot Pink/Magenta
-    entertainment: '#38BDF8', // Sky Blue
-    sports_venue: '#22C55E',  // Athletic Green
-    
-    // Public & Utility
-    parks: '#16A34A',         // Nature Green
-    college: '#1E3A8A',       // Navy Blue
-    landmarks: '#9CA3AF',     // Stone Gray
-    parking: '#64748B',       // Slate Gray
-    gas: '#A3E635',           // Yellow-Green
-    atm: '#14B8A6',           // Muted Blue-Green
-    emergency: '#DC2626',     // Alert Red
-  };
+// Hawkly POI Color System - centralized category styling
+const CATEGORY_STYLES: Record<string, { color: string; emoji: string }> = {
+  // Social & Nightlife
+  bar: { color: '#FFB020', emoji: '🍺' },           // Amber/Warm Gold
+  bars: { color: '#FFB020', emoji: '🍺' },
+  nightclub: { color: '#8B5CF6', emoji: '🎶' },     // Electric Purple
+  nightclubs: { color: '#8B5CF6', emoji: '🎶' },
+  clubs: { color: '#8B5CF6', emoji: '🎶' },
+  lounge: { color: '#2DD4BF', emoji: '🛋️' },        // Deep Teal
+  lounges: { color: '#2DD4BF', emoji: '🛋️' },
+  bar_grill: { color: '#FB923C', emoji: '🍔' },     // Burnt Orange
+  'bar_&_grill': { color: '#FB923C', emoji: '🍔' },
+  restaurant: { color: '#EF4444', emoji: '🍽️' },    // Crimson Red
+  restaurants: { color: '#EF4444', emoji: '🍽️' },
+  food: { color: '#EF4444', emoji: '🍽️' },
+  coffee: { color: '#A16207', emoji: '☕' },         // Soft Brown/Mocha
+  coffee_shops: { color: '#A16207', emoji: '☕' },
+  brewery: { color: '#FFB020', emoji: '🍺' },
+  sports_bar: { color: '#FB923C', emoji: '🍔' },
+  live_music: { color: '#8B5CF6', emoji: '🎵' },
   
-  return colors[category] || '#E5E7EB'; // Default to neutral gray
+  // Entertainment & Events  
+  events: { color: '#EC4899', emoji: '🎟️' },        // Hot Pink/Magenta
+  entertainment: { color: '#38BDF8', emoji: '🎬' }, // Sky Blue
+  sports_venue: { color: '#22C55E', emoji: '🏟️' },  // Athletic Green
+  sports_venues: { color: '#22C55E', emoji: '🏟️' },
+  
+  // Public & Utility
+  parks: { color: '#16A34A', emoji: '🌳' },
+  college: { color: '#1E3A8A', emoji: '🏫' },
+  landmarks: { color: '#9CA3AF', emoji: '🏛️' },
+  parking: { color: '#64748B', emoji: '🅿️' },
+  gas: { color: '#A3E635', emoji: '⛽' },
+  atm: { color: '#14B8A6', emoji: '🏧' },
+  emergency: { color: '#DC2626', emoji: '🚨' },
+};
+
+// Get marker color based on category
+const getCategoryColor = (category: string): string => {
+  const normalized = category?.toLowerCase().replace(/\s+/g, '_') || '';
+  return CATEGORY_STYLES[normalized]?.color || '#E5E7EB';
+};
+
+// Get emoji for category
+const getCategoryEmoji = (category: string): string => {
+  const normalized = category?.toLowerCase().replace(/\s+/g, '_') || '';
+  return CATEGORY_STYLES[normalized]?.emoji || '📍';
 };
 
 // Get marker size based on hot streak
@@ -66,28 +83,7 @@ const getMarkerSize = (hotStreak: string, crowdCount: number) => {
   return baseSize + crowdBonus;
 };
 
-// Get emoji for category (Hawkly POI System)
-const getCategoryEmoji = (category: string): string => {
-  const emojis: Record<string, string> = {
-    // Social & Nightlife
-    bar: '🍺',
-    nightclub: '🎶',
-    lounge: '🛋️',
-    bar_grill: '🍔',
-    restaurant: '🍽️',
-    coffee: '☕',
-    brewery: '🍺',
-    sports_bar: '🍔',
-    live_music: '🎶',
-    
-    // Entertainment & Events
-    events: '🎟️',
-    entertainment: '🎬',
-    sports_venue: '🏟️',
-  };
-  
-  return emojis[category] || '🎯';
-};
+// (getCategoryEmoji is now defined in CATEGORY_STYLES lookup above)
 
 // Create custom icon for venue
 const createVenueIcon = (venue: Venue, isSelected: boolean) => {

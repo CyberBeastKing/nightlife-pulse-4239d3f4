@@ -111,8 +111,8 @@ serve(async (req) => {
 
     const venues = (rawPlaces || []).map((place: any) => {
       const coords = parseWKB(place.location);
-      // Use the category_id directly as the category identifier
-      const categoryId = place.category?.id || null;
+      // Use the category name (normalized to snake_case) for color/emoji lookup
+      const categoryName = place.category?.name?.toLowerCase().replace(/\s+/g, '_') || 'bar';
       
       return {
         id: place.id,
@@ -120,7 +120,7 @@ serve(async (req) => {
         address: place.google_address || place.address,
         latitude: coords?.lat || 0,
         longitude: coords?.lng || 0,
-        category: categoryId, // Use the actual category UUID
+        category: categoryName, // Use normalized category name for color/emoji lookup
         place_type: place.place_type || 'social',
         hot_streak: place.hot_streak || 'quiet',
         current_crowd_count: place.current_crowd_count || 0,
