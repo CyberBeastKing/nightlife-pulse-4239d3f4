@@ -291,7 +291,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
         closeButton: false,
         className: 'venue-popup',
         maxWidth: 320,
-        offset: [0, 5],
+        offset: [0, -10],
       })
         .setLatLng([selectedVenue.latitude, selectedVenue.longitude])
         .setContent(container)
@@ -416,10 +416,17 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
             width: auto !important;
           }
           
+          /*
+            IMPORTANT: Leaflet's default tip-container width is 40px and it also
+            uses a fixed -20px margin-left in its own CSS. If we change the width
+            here, the tip (and our connector) will shift horizontally and won't
+            line up with the marker.
+          */
           .venue-popup .leaflet-popup-tip-container {
-            width: 20px;
-            height: 20px;
+            width: 40px;
+            height: 44px;
             overflow: visible;
+            pointer-events: none;
           }
           
           .venue-popup .leaflet-popup-tip {
@@ -430,7 +437,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
             height: 0;
           }
           
-          /* Animated connector line */
+          /* Animated connector line (anchored to Leaflet's actual tip point) */
           .venue-popup .leaflet-popup-tip-container::before {
             content: '';
             position: absolute;
@@ -438,7 +445,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
             top: 0;
             transform: translateX(-50%);
             width: 2px;
-            height: 12px;
+            height: calc(100% - 8px);
             background: hsl(var(--primary));
             animation: connectorPulse 2s ease-in-out infinite;
           }
@@ -448,7 +455,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
             content: '';
             position: absolute;
             left: 50%;
-            top: 10px;
+            bottom: 0;
             transform: translateX(-50%);
             width: 0;
             height: 0;
