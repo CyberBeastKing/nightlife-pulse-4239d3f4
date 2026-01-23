@@ -179,14 +179,14 @@ export const categories = [
   { id: 'lounge', label: 'Lounges', icon: '🍸', color: '#2DD4BF' },
   { id: 'restaurant', label: 'Food', icon: '🍽️', color: '#EF4444' },
   { id: 'coffee', label: 'Coffee', icon: '☕', color: '#A16207' },
+  { id: 'events', label: 'Events', icon: '🎉', color: '#EC4899' },
+  { id: 'sports_venue', label: 'Sports Venues', icon: '🏟️', color: '#22C55E' },
   { id: 'entertainment', label: 'Entertainment', icon: '🎮', color: '#38BDF8' },
   { id: 'live_music', label: 'Live Music', icon: '🎵', color: '#8B5CF6' },
 ];
 
-// Utility categories (hidden in "More" dropdown)
-export const utilityCategories = [
-  { id: 'sports_venue', label: 'Sports Venues', icon: '🏟️', color: '#22C55E' },
-];
+// Utility categories (hidden in "More" dropdown) - currently empty
+export const utilityCategories: { id: string; label: string; icon: string; color: string }[] = [];
 
 // Labels to exclude from all category displays
 export const excludedCategoryLabels = [
