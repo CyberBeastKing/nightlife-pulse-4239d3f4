@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { mockVenues, categories as fallbackCategories } from '@/data/mockVenues';
 import { LeafletMap, LeafletMapRef } from './LeafletMap';
-import { VenueCard } from './VenueCard';
 import { FloatingSearchBar } from './FloatingSearchBar';
 import { Venue, ReactionType } from '@/types/venue';
 import { useExternalVenues } from '@/hooks/useExternalVenues';
@@ -99,20 +98,11 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         selectedVenue={selectedVenue}
         onVenueSelect={setSelectedVenue}
         userLocation={userLocation || undefined}
+        onReact={handleReact}
+        onCheckIn={handleCheckIn}
+        onNavigate={handleNavigate}
       />
 
-      {/* Venue Card Popup */}
-      {selectedVenue && (
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-[1001] w-full max-w-sm px-4">
-          <VenueCard
-            venue={selectedVenue}
-            onClose={() => setSelectedVenue(null)}
-            onReact={handleReact}
-            onCheckIn={handleCheckIn}
-            onNavigate={handleNavigate}
-          />
-        </div>
-      )}
     </div>
   );
 }

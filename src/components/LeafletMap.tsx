@@ -1,14 +1,18 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { createRoot, Root } from 'react-dom/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Venue } from '@/types/venue';
+import { Venue, ReactionType } from '@/types/venue';
 import { cn } from '@/lib/utils';
-
+import { VenuePopup } from './VenuePopup';
 interface LeafletMapProps {
   venues: Venue[];
   selectedVenue: Venue | null;
   onVenueSelect: (venue: Venue | null) => void;
   userLocation?: { lat: number; lng: number };
+  onReact: (type: ReactionType) => void;
+  onCheckIn: () => void;
+  onNavigate: () => void;
 }
 
 export interface LeafletMapRef {
@@ -151,11 +155,13 @@ const createUserIcon = () => {
 };
 
 export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
-  ({ venues, selectedVenue, onVenueSelect, userLocation }, ref) => {
+  ({ venues, selectedVenue, onVenueSelect, userLocation, onReact, onCheckIn, onNavigate }, ref) => {
     const mapRef = useRef<L.Map | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<Map<string, L.Marker>>(new Map());
     const userMarkerRef = useRef<L.Marker | null>(null);
+    const popupRef = useRef<L.Popup | null>(null);
+    const popupRootRef = useRef<Root | null>(null);
 
     // Expose flyTo method via ref
     useImperativeHandle(ref, () => ({
@@ -257,6 +263,68 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
       });
     }, [venues, selectedVenue, onVenueSelect]);
 
+    // Handle popup for selected venue
+    useEffect(() => {
+      if (!mapRef.current) return;
+
+      const map = mapRef.current;
+
+      // Close existing popup
+      if (popupRef.current) {
+        map.closePopup(popupRef.current);
+        popupRef.current = null;
+      }
+      
+      // Cleanup old root
+      if (popupRootRef.current) {
+        popupRootRef.current.unmount();
+        popupRootRef.current = null;
+      }
+
+      if (!selectedVenue) return;
+
+      // Create container for React portal
+      const container = document.createElement('div');
+      
+      // Create popup
+      const popup = L.popup({
+        closeButton: false,
+        className: 'venue-popup',
+        maxWidth: 320,
+        offset: [0, -10],
+      })
+        .setLatLng([selectedVenue.latitude, selectedVenue.longitude])
+        .setContent(container)
+        .openOn(map);
+
+      // Render React component into popup
+      const root = createRoot(container);
+      root.render(
+        <VenuePopup
+          venue={selectedVenue}
+          onClose={() => onVenueSelect(null)}
+          onReact={onReact}
+          onCheckIn={onCheckIn}
+          onNavigate={onNavigate}
+        />
+      );
+
+      popupRef.current = popup;
+      popupRootRef.current = root;
+
+      // Handle popup close event
+      popup.on('remove', () => {
+        onVenueSelect(null);
+      });
+
+      return () => {
+        if (popupRootRef.current) {
+          popupRootRef.current.unmount();
+          popupRootRef.current = null;
+        }
+      };
+    }, [selectedVenue, onVenueSelect, onReact, onCheckIn, onNavigate]);
+
     // Handle recenter
     const handleRecenter = () => {
       if (!mapRef.current) return;
@@ -332,6 +400,33 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
           
           .leaflet-control-attribution a {
             color: hsl(var(--primary)) !important;
+          }
+
+          /* Custom popup styles */
+          .venue-popup .leaflet-popup-content-wrapper {
+            background: hsl(var(--card));
+            border-radius: 20px;
+            padding: 0;
+            border: 1px solid hsl(var(--border));
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+          }
+          
+          .venue-popup .leaflet-popup-content {
+            margin: 16px;
+            width: auto !important;
+          }
+          
+          .venue-popup .leaflet-popup-tip-container {
+            width: 30px;
+            height: 15px;
+          }
+          
+          .venue-popup .leaflet-popup-tip {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-top: none;
+            border-left: none;
+            box-shadow: none;
           }
         `}</style>
       </div>
