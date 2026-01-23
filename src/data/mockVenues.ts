@@ -185,13 +185,12 @@ export const categories = [
 
 // Utility categories (hidden in "More" dropdown)
 export const utilityCategories = [
-  { id: 'events', label: 'Events', icon: '🎟️', color: '#EC4899' },
-  { id: 'sports_venue', label: 'Sports', icon: '🏟️', color: '#22C55E' },
+  { id: 'sports_venue', label: 'Sports Venues', icon: '🏟️', color: '#22C55E' },
   { id: 'parks', label: 'Parks', icon: '🌳', color: '#16A34A' },
   { id: 'college', label: 'Colleges', icon: '🏫', color: '#1E3A8A' },
-  { id: 'landmarks', label: 'Landmarks', icon: '🗿', color: '#9CA3AF' },
+  { id: 'landmarks', label: 'Landmarks', icon: '🏛️', color: '#9CA3AF' },
   { id: 'parking', label: 'Parking', icon: '🅿️', color: '#64748B' },
-  { id: 'gas', label: 'Gas', icon: '⛽', color: '#A3E635' },
-  { id: 'atm', label: 'ATM/Banks', icon: '🏦', color: '#14B8A6' },
-  { id: 'emergency', label: 'Emergency', icon: '🚨', color: '#DC2626' },
+  { id: 'gas', label: 'Gas Stations', icon: '⛽', color: '#A3E635' },
+  { id: 'atm', label: 'ATM / Banks', icon: '🏦', color: '#14B8A6' },
+  { id: 'emergency', label: 'Emergencies', icon: '🚨', color: '#DC2626' },
 ];
