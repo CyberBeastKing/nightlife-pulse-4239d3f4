@@ -291,7 +291,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
         closeButton: false,
         className: 'venue-popup',
         maxWidth: 320,
-        offset: [0, -10],
+        offset: [0, 5],
       })
         .setLatLng([selectedVenue.latitude, selectedVenue.longitude])
         .setContent(container)
@@ -417,8 +417,8 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
           }
           
           .venue-popup .leaflet-popup-tip-container {
-            width: 40px;
-            height: 50px;
+            width: 20px;
+            height: 20px;
             overflow: visible;
           }
           
@@ -430,7 +430,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
             height: 0;
           }
           
-          /* Animated connector arrow */
+          /* Animated connector line */
           .venue-popup .leaflet-popup-tip-container::before {
             content: '';
             position: absolute;
@@ -438,49 +438,45 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
             top: 0;
             transform: translateX(-50%);
             width: 2px;
-            height: 40px;
-            background: linear-gradient(
-              to bottom,
-              hsl(var(--primary)),
-              hsl(var(--primary) / 0.3)
-            );
+            height: 12px;
+            background: hsl(var(--primary));
             animation: connectorPulse 2s ease-in-out infinite;
           }
           
-          /* Arrow head at the bottom */
+          /* Arrow head pointing down at marker */
           .venue-popup .leaflet-popup-tip-container::after {
             content: '';
             position: absolute;
             left: 50%;
-            bottom: 0;
+            top: 10px;
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 8px solid hsl(var(--primary));
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid hsl(var(--primary));
             animation: arrowPulse 2s ease-in-out infinite;
           }
           
           @keyframes connectorPulse {
             0%, 100% { 
-              opacity: 0.6;
-              box-shadow: 0 0 4px hsl(var(--primary) / 0.3);
+              opacity: 0.7;
+              box-shadow: 0 0 3px hsl(var(--primary) / 0.4);
             }
             50% { 
               opacity: 1;
-              box-shadow: 0 0 10px hsl(var(--primary) / 0.6);
+              box-shadow: 0 0 8px hsl(var(--primary) / 0.7);
             }
           }
           
           @keyframes arrowPulse {
             0%, 100% { 
-              opacity: 0.7;
-              filter: drop-shadow(0 0 2px hsl(var(--primary) / 0.3));
+              opacity: 0.8;
+              filter: drop-shadow(0 0 2px hsl(var(--primary) / 0.4));
             }
             50% { 
               opacity: 1;
-              filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.8));
+              filter: drop-shadow(0 0 5px hsl(var(--primary)));
             }
           }
         `}</style>
