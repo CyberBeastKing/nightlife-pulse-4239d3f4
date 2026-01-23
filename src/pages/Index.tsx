@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { MapView } from '@/components/MapView';
 import { BottomNav } from '@/components/BottomNav';
+import { DiscoverView } from '@/components/discover/DiscoverView';
+import { Venue } from '@/types/venue';
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,6 +21,16 @@ const Index = () => {
     });
   };
 
+  const handleNavigateToMapFromDiscover = (venue: Venue) => {
+    // Switch to map tab and set up to show this venue
+    setActiveTab('map');
+    setSearchQuery(venue.name);
+    // Add venue's category to selected if not already
+    if (venue.category) {
+      setSelectedCategories(prev => new Set([...prev, venue.category]));
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Full-bleed Map with floating UI */}
@@ -33,13 +45,7 @@ const Index = () => {
         )}
 
         {activeTab === 'discover' && (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            <div className="text-center p-8">
-              <span className="text-5xl mb-4 block">🔥</span>
-              <h2 className="text-xl font-semibold mb-2">Discover</h2>
-              <p>AI-powered recommendations coming soon</p>
-            </div>
-          </div>
+          <DiscoverView onNavigateToMap={handleNavigateToMapFromDiscover} />
         )}
 
         {activeTab === 'chat' && (
