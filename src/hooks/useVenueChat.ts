@@ -148,9 +148,14 @@ export function useVenueChat(venueId?: string) {
 
       if (insertError) throw insertError;
       return true;
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error sending message:', err);
-      setError('Failed to send message');
+      // Check for rate limit error
+      if (err?.message?.includes('Rate limit exceeded') || err?.code === 'P0001') {
+        setError('Slow down! Wait a moment before sending more messages.');
+      } else {
+        setError('Failed to send message');
+      }
       return false;
     }
   }, [user]);
