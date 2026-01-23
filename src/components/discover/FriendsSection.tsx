@@ -3,12 +3,13 @@ import { FriendActivityCard, FriendActivity } from './cards/FriendActivityCard';
 import { toast } from 'sonner';
 
 // Mock friend activity - in production this comes from check_ins joined with users
+// Mock friend activity with anonymous usernames (Hawkly anonymity principle)
 const mockFriendActivity: FriendActivity[] = [
   {
     id: '1',
     friend: {
       id: 'u1',
-      name: 'Sarah Miller',
+      name: 'MrSwiftWolf1234',
       avatar_url: undefined,
     },
     venue: {
@@ -24,7 +25,7 @@ const mockFriendActivity: FriendActivity[] = [
     id: '2',
     friend: {
       id: 'u2',
-      name: 'Mike Johnson',
+      name: 'MrsCosmicAngel5678',
       avatar_url: undefined,
     },
     venue: {
@@ -39,7 +40,7 @@ const mockFriendActivity: FriendActivity[] = [
     id: '3',
     friend: {
       id: 'u3',
-      name: 'Emily Chen',
+      name: 'RainbowJourney9012',
       avatar_url: undefined,
     },
     venue: {
@@ -62,7 +63,7 @@ export function FriendsSection({ onVenueClick }: FriendsSectionProps) {
   const activities = mockFriendActivity;
 
   const handleJoin = (activity: FriendActivity) => {
-    toast.success(`Navigating to ${activity.venue.name} to meet ${activity.friend.name.split(' ')[0]}!`);
+    toast.success(`Navigating to ${activity.venue.name} to meet ${activity.friend.name}!`);
     onVenueClick(activity.venue.id);
   };
 
