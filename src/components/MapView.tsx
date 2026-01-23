@@ -11,9 +11,10 @@ interface MapViewProps {
   selectedCategories: Set<string>;
   onSearchChange: (value: string) => void;
   onCategoryToggle: (categoryId: string) => void;
+  onOpenVenueChat: (venue: Venue) => void;
 }
 
-export function MapView({ searchQuery, selectedCategories, onSearchChange, onCategoryToggle }: MapViewProps) {
+export function MapView({ searchQuery, selectedCategories, onSearchChange, onCategoryToggle, onOpenVenueChat }: MapViewProps) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const mapRef = useRef<LeafletMapRef>(null);
   
@@ -73,8 +74,9 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
   };
 
   const handleChat = () => {
-    console.log('Opening chat for:', selectedVenue?.name);
-    // TODO: Switch to chat tab and open this venue's chat
+    if (selectedVenue) {
+      onOpenVenueChat(selectedVenue);
+    }
   };
 
   const handleVenueSelectFromSearch = (venue: Venue) => {
