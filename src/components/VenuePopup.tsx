@@ -1,5 +1,5 @@
 import { Venue, ReactionType } from '@/types/venue';
-import { X, Users, Volume2, Zap, Navigation } from 'lucide-react';
+import { X, Users, Volume2, Zap, Navigation, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface VenuePopupProps {
@@ -7,6 +7,7 @@ interface VenuePopupProps {
   onClose: () => void;
   onReact: (type: ReactionType) => void;
   onCheckIn: () => void;
+  onChat: () => void;
   onNavigate: () => void;
 }
 
@@ -37,7 +38,7 @@ const reactions: { type: ReactionType; emoji: string; label: string }[] = [
   { type: 'dead', emoji: '💀', label: 'DEAD' },
 ];
 
-export function VenuePopup({ venue, onClose, onReact, onCheckIn, onNavigate }: VenuePopupProps) {
+export function VenuePopup({ venue, onClose, onReact, onCheckIn, onChat, onNavigate }: VenuePopupProps) {
   const badge = hotStreakBadge[venue.hot_streak];
   
   // Handle both object vibe (expected) and string vibe (from external DB)
@@ -146,6 +147,13 @@ export function VenuePopup({ venue, onClose, onReact, onCheckIn, onNavigate }: V
           className="flex-1 bg-primary text-primary-foreground py-2 px-3 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
         >
           Check In
+        </button>
+        <button
+          onClick={onChat}
+          className="p-2 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
+          aria-label="Open chat"
+        >
+          <MessageCircle className="w-4 h-4" />
         </button>
         <button
           onClick={onNavigate}

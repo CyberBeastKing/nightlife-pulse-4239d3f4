@@ -14,6 +14,7 @@ interface LeafletMapProps {
   userLocation?: { lat: number; lng: number };
   onReact: (type: ReactionType) => void;
   onCheckIn: () => void;
+  onChat: () => void;
   onNavigate: () => void;
 }
 
@@ -192,7 +193,7 @@ const createUserIcon = () => {
 };
 
 export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
-  ({ venues, categories = [], selectedVenue, onVenueSelect, userLocation, onReact, onCheckIn, onNavigate }, ref) => {
+  ({ venues, categories = [], selectedVenue, onVenueSelect, userLocation, onReact, onCheckIn, onChat, onNavigate }, ref) => {
     const mapRef = useRef<L.Map | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<Map<string, L.Marker>>(new Map());
@@ -355,6 +356,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
           onClose={() => onVenueSelect(null)}
           onReact={onReact}
           onCheckIn={onCheckIn}
+          onChat={onChat}
           onNavigate={onNavigate}
         />
       );
