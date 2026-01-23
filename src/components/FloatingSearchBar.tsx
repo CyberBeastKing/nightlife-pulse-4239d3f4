@@ -30,6 +30,16 @@ export function FloatingSearchBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
+  const utilityCategoryIds = useMemo(() => {
+    return new Set(utilityCategories.map((c) => c.id));
+  }, []);
+
+  // Only show non-utility categories in the main row;
+  // utility categories belong exclusively in the "More" section.
+  const primaryCategories = useMemo(() => {
+    return categories.filter((c) => !utilityCategoryIds.has(c.id));
+  }, [categories, utilityCategoryIds]);
+
   const hasUtilitySelected = utilityCategories.some((c) => selectedCategories.has(c.id));
 
   // Filter suggestions based on search value
@@ -143,7 +153,7 @@ export function FloatingSearchBar({
 
       {/* Centered Category Chips - Toggle Select with POI Colors */}
       <div className="flex justify-center gap-2 flex-wrap">
-        {categories.map((category) => {
+        {primaryCategories.map((category) => {
           const isSelected = selectedCategories.has(category.id);
           return (
             <button
