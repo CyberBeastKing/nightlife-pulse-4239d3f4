@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, AlertCircle, Loader2, ShieldAlert } from 'lucide-react';
 import { CrowdSignals } from './CrowdSignals';
 import { ChatMessage } from './ChatMessage';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useVenueChat } from '@/hooks/useVenueChat';
 import { useAuth } from '@/hooks/useAuth';
-import type { PlaceChatDetails, SenderLabel } from './types';
+import type { PlaceChatDetails, SenderLabel, ReportReason } from './types';
 
 interface PlaceChatRoomProps {
   chat: PlaceChatDetails;
@@ -23,11 +23,14 @@ export function PlaceChatRoom({ chat, onBack }: PlaceChatRoomProps) {
     messages,
     isLoading,
     error,
+    isBanned,
+    strikes,
     setVenueChatId,
     getOrCreateVenueChat,
     fetchMessages,
     sendMessage,
     voteMessage,
+    reportMessage,
   } = useVenueChat();
 
   // Initialize chat room
@@ -86,6 +89,10 @@ export function PlaceChatRoom({ chat, onBack }: PlaceChatRoomProps) {
 
   const handleVote = async (messageId: string, type: 'up' | 'down') => {
     await voteMessage(messageId, type);
+  };
+
+  const handleReport = async (messageId: string, reason: ReportReason, details?: string): Promise<boolean> => {
+    return reportMessage(messageId, reason, details);
   };
 
   // Combine real-time messages with any initial mock messages
@@ -153,6 +160,7 @@ export function PlaceChatRoom({ chat, onBack }: PlaceChatRoomProps) {
               key={msg.id} 
               message={msg} 
               onVote={handleVote}
+              onReport={user ? handleReport : undefined}
             />
           ))}
         </div>
@@ -167,8 +175,22 @@ export function PlaceChatRoom({ chat, onBack }: PlaceChatRoomProps) {
 
       {/* Input area */}
       <div className="glass-strong border-t border-border/50 p-4 pb-safe">
-        {user ? (
+        {isBanned ? (
+          <div className="flex items-center justify-center gap-2 py-3 text-destructive">
+            <ShieldAlert className="w-5 h-5" />
+            <p className="text-sm font-medium">You are banned from chat</p>
+          </div>
+        ) : user ? (
           <>
+            {/* Strike warning */}
+            {strikes.length > 0 && strikes.length < 3 && (
+              <div className="flex items-center justify-center gap-2 mb-3 text-accent">
+                <AlertCircle className="w-4 h-4" />
+                <p className="text-xs">
+                  Warning: {strikes.length}/3 strikes • Please follow community guidelines
+                </p>
+              </div>
+            )}
             <div className="flex items-end gap-2">
               <Textarea
                 value={message}
