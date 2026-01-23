@@ -72,6 +72,11 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
     }
   };
 
+  const handleChat = () => {
+    console.log('Opening chat for:', selectedVenue?.name);
+    // TODO: Switch to chat tab and open this venue's chat
+  };
+
   const handleVenueSelectFromSearch = (venue: Venue) => {
     setSelectedVenue(venue);
     // Fly to the venue location
@@ -101,6 +106,7 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         userLocation={userLocation || undefined}
         onReact={handleReact}
         onCheckIn={handleCheckIn}
+        onChat={handleChat}
         onNavigate={handleNavigate}
       />
 
