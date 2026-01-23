@@ -275,6 +275,14 @@
 }
 
 @layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   .text-gradient-fire {
     @apply bg-gradient-to-r from-[hsl(var(--marker-fire))] to-[hsl(var(--marker-popping))] bg-clip-text text-transparent;
   }
