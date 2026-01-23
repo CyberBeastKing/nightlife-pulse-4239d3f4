@@ -22,17 +22,19 @@ serve(async (req) => {
 
     const externalSupabase = createClient(externalSupabaseUrl, externalSupabaseKey);
 
-    // Fetch venues from external Supabase - adjust table name as needed
-    const { data: venues, error } = await externalSupabase
-      .from('venues')
+    // Fetch events from external Supabase (the table is named 'events')
+    const { data: events, error } = await externalSupabase
+      .from('events')
       .select('*');
 
     if (error) {
-      console.error('Error fetching venues:', error);
+      console.error('Error fetching events:', error);
       throw error;
     }
 
-    return new Response(JSON.stringify({ venues }), {
+    console.log('Successfully fetched events:', events?.length || 0, 'records');
+
+    return new Response(JSON.stringify({ events }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
