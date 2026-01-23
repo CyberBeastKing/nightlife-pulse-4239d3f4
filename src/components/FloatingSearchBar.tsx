@@ -1,13 +1,16 @@
-import { Search, X, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { Search, X, ChevronDown, MapPin } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { categories, utilityCategories } from '@/data/mockVenues';
+import { Venue } from '@/types/venue';
 
 interface FloatingSearchBarProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
   selectedCategories: Set<string>;
   onCategoryToggle: (categoryId: string) => void;
+  venues?: Venue[];
+  onVenueSelect?: (venue: Venue) => void;
 }
 
 export function FloatingSearchBar({
@@ -15,41 +18,123 @@ export function FloatingSearchBar({
   onSearchChange,
   selectedCategories,
   onCategoryToggle,
+  venues = [],
+  onVenueSelect,
 }: FloatingSearchBarProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const hasUtilitySelected = utilityCategories.some((c) => selectedCategories.has(c.id));
+
+  // Filter suggestions based on search value
+  const suggestions = useMemo(() => {
+    if (!searchValue || searchValue.length < 2) return [];
+    const query = searchValue.toLowerCase();
+    return venues
+      .filter((venue) => venue.name.toLowerCase().includes(query))
+      .slice(0, 6); // Limit to 6 suggestions
+  }, [searchValue, venues]);
+
+  // Handle click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(e.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(e.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSuggestionClick = (venue: Venue) => {
+    onSearchChange(venue.name);
+    setShowSuggestions(false);
+    onVenueSelect?.(venue);
+  };
+
+  const handleInputChange = (value: string) => {
+    onSearchChange(value);
+    setShowSuggestions(value.length >= 2);
+  };
+
+  const handleInputFocus = () => {
+    setIsFocused(true);
+    if (searchValue.length >= 2) {
+      setShowSuggestions(true);
+    }
+  };
 
   return (
     <div className="absolute top-4 left-0 right-0 z-[1000] space-y-2 px-4">
       {/* Search Bar */}
-      <div
-        className={cn(
-          'glass rounded-full px-4 py-3 flex items-center gap-3 transition-all duration-300 shadow-lg',
-          isFocused && 'ring-2 ring-primary/50 glow-primary'
-        )}
-      >
-        <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+      <div className="relative">
+        <div
+          className={cn(
+            'glass rounded-full px-4 py-3 flex items-center gap-3 transition-all duration-300 shadow-lg',
+            isFocused && 'ring-2 ring-primary/50 glow-primary'
+          )}
+        >
+          <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
 
-        <input
-          type="text"
-          value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          placeholder="Search places..."
-          className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
-        />
+          <input
+            ref={inputRef}
+            type="text"
+            value={searchValue}
+            onChange={(e) => handleInputChange(e.target.value)}
+            onFocus={handleInputFocus}
+            onBlur={() => setIsFocused(false)}
+            placeholder="Search places..."
+            className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
+          />
 
-        {searchValue && (
-          <button
-            onClick={() => onSearchChange('')}
-            className="p-1 rounded-full hover:bg-secondary/50 transition-colors"
-            aria-label="Clear search"
+          {searchValue && (
+            <button
+              onClick={() => {
+                onSearchChange('');
+                setShowSuggestions(false);
+              }}
+              className="p-1 rounded-full hover:bg-secondary/50 transition-colors"
+              aria-label="Clear search"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+
+        {/* Search Suggestions Dropdown */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div
+            ref={suggestionsRef}
+            className="absolute top-full left-0 right-0 mt-2 glass rounded-2xl overflow-hidden shadow-xl animate-fade-in"
           >
-            <X className="w-4 h-4 text-muted-foreground" />
-          </button>
+            {suggestions.map((venue) => (
+              <button
+                key={venue.id}
+                onClick={() => handleSuggestionClick(venue)}
+                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-secondary/50 transition-colors text-left border-b border-border/20 last:border-b-0"
+              >
+                <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {venue.name}
+                  </p>
+                  {venue.address && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {venue.address}
+                    </p>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
         )}
       </div>
 
