@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { mockVenues, categories as fallbackCategories } from '@/data/mockVenues';
 import { LeafletMap, LeafletMapRef } from './LeafletMap';
 import { VenueCard } from './VenueCard';
 import { FloatingSearchBar } from './FloatingSearchBar';
 import { Venue, ReactionType } from '@/types/venue';
 import { useExternalVenues } from '@/hooks/useExternalVenues';
+import { useUserLocation } from '@/hooks/useUserLocation';
 
 interface MapViewProps {
   searchQuery: string;
@@ -15,8 +16,10 @@ interface MapViewProps {
 
 export function MapView({ searchQuery, selectedCategories, onSearchChange, onCategoryToggle }: MapViewProps) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | undefined>();
   const mapRef = useRef<LeafletMapRef>(null);
+  
+  // Use shared location context
+  const { coords: userLocation } = useUserLocation();
   
   // Fetch venues and categories from external Supabase, fallback to mock data
   const { data: externalData, isLoading, error } = useExternalVenues();
@@ -26,26 +29,6 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
   if (error) {
     console.warn('Using mock data - external fetch failed:', error);
   }
-
-  // Get user location
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        () => {
-          // Default to Cuyahoga Falls if geolocation fails
-          setUserLocation({ lat: 41.1339, lng: -81.4846 });
-        }
-      );
-    } else {
-      setUserLocation({ lat: 41.1339, lng: -81.4846 });
-    }
-  }, []);
 
   const filteredVenues = useMemo(() => {
     return venues.filter((venue) => {
@@ -115,7 +98,7 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         venues={filteredVenues}
         selectedVenue={selectedVenue}
         onVenueSelect={setSelectedVenue}
-        userLocation={userLocation}
+        userLocation={userLocation || undefined}
       />
 
       {/* Venue Card Popup */}

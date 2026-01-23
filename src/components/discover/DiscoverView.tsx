@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useExternalVenues } from '@/hooks/useExternalVenues';
+import { useUserLocation } from '@/hooks/useUserLocation';
 import { mockVenues, categories as fallbackCategories } from '@/data/mockVenues';
 import { DiscoverHeader } from './DiscoverHeader';
 import { TrendingSection } from './TrendingSection';
@@ -19,6 +20,7 @@ interface DiscoverViewProps {
 
 export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
   const { data: externalData, isLoading } = useExternalVenues();
+  const { locationName, isLoading: locationLoading } = useUserLocation();
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<DiscoverFilters>(defaultFilters);
   const [activeTab, setActiveTab] = useState('trending');
@@ -92,7 +94,7 @@ export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
         trendingCount={trendingCount}
         activeUsers={activeUsers}
         hottestSpot={hottestSpot}
-        location="Akron, OH"
+        location={locationLoading ? 'Locating...' : locationName}
       />
       
       {/* Tab Navigation */}
