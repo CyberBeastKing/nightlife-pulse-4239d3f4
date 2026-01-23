@@ -85,7 +85,7 @@ export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-background">
+    <div className="h-full flex flex-col bg-background">
       <DiscoverHeader 
         onSearchClick={handleSearchClick} 
         onFilterClick={handleFilterClick}
@@ -96,8 +96,8 @@ export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
       />
       
       {/* Tab Navigation */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="sticky top-[180px] z-40 bg-background/95 backdrop-blur-xl border-b border-border/30">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+        <div className="flex-shrink-0 bg-background/95 backdrop-blur-xl border-b border-border/30">
           <TabsList className="w-full h-auto p-1 bg-transparent rounded-none justify-start gap-1 overflow-x-auto scrollbar-hide px-4">
             <TabsTrigger 
               value="trending" 
@@ -137,7 +137,7 @@ export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
           </TabsList>
         </div>
 
-        <main className="pb-24 pt-4">
+        <main className="flex-1 overflow-y-auto pb-24 pt-4">
           <TabsContent value="trending" className="mt-0">
             <TrendingSection 
               venues={venues} 
