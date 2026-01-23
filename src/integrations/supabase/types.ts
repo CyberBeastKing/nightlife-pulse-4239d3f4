@@ -14,16 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          date_of_birth: string
+          gender: Database["public"]["Enums"]["gender_identity"]
+          id: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth: string
+          gender: Database["public"]["Enums"]["gender_identity"]
+          id: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string
+          gender?: Database["public"]["Enums"]["gender_identity"]
+          id?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          gender: Database["public"]["Enums"]["gender_identity"] | null
+          id: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          gender?: Database["public"]["Enums"]["gender_identity"] | null
+          id?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          gender?: Database["public"]["Enums"]["gender_identity"] | null
+          id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      is_over_21: { Args: { dob: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      gender_identity: "male" | "female" | "lgbtq"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +202,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      gender_identity: ["male", "female", "lgbtq"],
+    },
   },
 } as const
