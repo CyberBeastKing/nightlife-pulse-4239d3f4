@@ -95,6 +95,7 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
       <LeafletMap
         ref={mapRef}
         venues={filteredVenues}
+        categories={categories}
         selectedVenue={selectedVenue}
         onVenueSelect={setSelectedVenue}
         userLocation={userLocation || undefined}

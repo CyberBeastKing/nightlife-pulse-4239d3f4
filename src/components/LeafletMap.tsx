@@ -1,12 +1,14 @@
-import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Venue, ReactionType } from '@/types/venue';
 import { cn } from '@/lib/utils';
 import { VenuePopup } from './VenuePopup';
+import type { CategoryData } from '@/hooks/useExternalVenues';
 interface LeafletMapProps {
   venues: Venue[];
+  categories?: CategoryData[];
   selectedVenue: Venue | null;
   onVenueSelect: (venue: Venue | null) => void;
   userLocation?: { lat: number; lng: number };
@@ -19,14 +21,16 @@ export interface LeafletMapRef {
   flyTo: (lat: number, lng: number, zoom?: number) => void;
 }
 
+type CategoryStyle = { color: string; emoji: string };
+
 // Hawkly POI Color System - centralized category styling
-const CATEGORY_STYLES: Record<string, { color: string; emoji: string }> = {
+const CATEGORY_STYLES: Record<string, CategoryStyle> = {
   // Social & Nightlife
   bar: { color: '#FFB020', emoji: '🍺' },           // Amber/Warm Gold
   bars: { color: '#FFB020', emoji: '🍺' },
-  nightclub: { color: '#8B5CF6', emoji: '🎶' },     // Electric Purple
-  nightclubs: { color: '#8B5CF6', emoji: '🎶' },
-  clubs: { color: '#8B5CF6', emoji: '🎶' },
+  nightclub: { color: '#8B5CF6', emoji: '🎵' },     // Electric Purple
+  nightclubs: { color: '#8B5CF6', emoji: '🎵' },
+  clubs: { color: '#8B5CF6', emoji: '🎵' },
   lounge: { color: '#2DD4BF', emoji: '🛋️' },        // Deep Teal
   lounges: { color: '#2DD4BF', emoji: '🛋️' },
   bar_grill: { color: '#FB923C', emoji: '🍔' },     // Burnt Orange
@@ -57,39 +61,69 @@ const CATEGORY_STYLES: Record<string, { color: string; emoji: string }> = {
 };
 
 // Get marker color based on category
-const getCategoryColor = (category: string): string => {
-  const normalized = category?.toLowerCase().replace(/\s+/g, '_') || '';
+const normalizeKey = (value: string): string =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, '_')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+
+const getCategoryColor = (category: string, lookup?: Map<string, CategoryStyle>): string => {
+  const raw = category ?? '';
+  const normalized = normalizeKey(String(raw));
+
+  // Prefer lookup (handles UUID categories from backend)
+  const direct = lookup?.get(String(raw))?.color;
+  if (direct) return direct;
+
+  const byNormalized = lookup?.get(normalized)?.color;
+  if (byNormalized) return byNormalized;
+
   return CATEGORY_STYLES[normalized]?.color || '#E5E7EB';
 };
 
 // Get emoji for category
-const getCategoryEmoji = (category: string): string => {
-  const normalized = category?.toLowerCase().replace(/\s+/g, '_') || '';
-  return CATEGORY_STYLES[normalized]?.emoji || '📍';
+const getCategoryEmoji = (category: string, lookup?: Map<string, CategoryStyle>): string => {
+  const raw = category ?? '';
+  const normalized = normalizeKey(String(raw));
+
+  const direct = lookup?.get(String(raw))?.emoji;
+  if (direct) return direct;
+
+  const byNormalized = lookup?.get(normalized)?.emoji;
+  if (byNormalized) return byNormalized;
+
+  // Never fall back to 📍 (explicit request)
+  return CATEGORY_STYLES[normalized]?.emoji || '•';
 };
 
 // Get marker size based on hot streak
 const getMarkerSize = (hotStreak: string, crowdCount: number) => {
   const baseSize = {
-    hottest_spot: 38,
-    on_fire: 34,
-    popping_off: 30,
-    rising_star: 28,
-    active: 26,
-    quiet: 22,
+    hottest_spot: 44,
+    on_fire: 40,
+    popping_off: 36,
+    rising_star: 34,
+    active: 32,
+    quiet: 28,
   }[hotStreak] || 24;
   
   const crowdBonus = Math.min(crowdCount / 20, 8);
   return baseSize + crowdBonus;
 };
 
-// (getCategoryEmoji is now defined in CATEGORY_STYLES lookup above)
+// (getCategoryEmoji is defined above)
 
 // Create custom icon for venue
-const createVenueIcon = (venue: Venue, isSelected: boolean) => {
-  const color = getCategoryColor(venue.category);
+const createVenueIcon = (
+  venue: Venue,
+  isSelected: boolean,
+  categoryStyleLookup?: Map<string, CategoryStyle>
+) => {
+  const color = getCategoryColor(String(venue.category), categoryStyleLookup);
   const size = getMarkerSize(venue.hot_streak, venue.current_crowd_count);
-  const emoji = getCategoryEmoji(venue.category);
+  const emoji = getCategoryEmoji(String(venue.category), categoryStyleLookup);
   const scale = isSelected ? 1.3 : 1;
   const finalSize = size * scale;
   
@@ -158,13 +192,26 @@ const createUserIcon = () => {
 };
 
 export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
-  ({ venues, selectedVenue, onVenueSelect, userLocation, onReact, onCheckIn, onNavigate }, ref) => {
+  ({ venues, categories = [], selectedVenue, onVenueSelect, userLocation, onReact, onCheckIn, onNavigate }, ref) => {
     const mapRef = useRef<L.Map | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<Map<string, L.Marker>>(new Map());
     const userMarkerRef = useRef<L.Marker | null>(null);
     const popupRef = useRef<L.Popup | null>(null);
     const popupRootRef = useRef<Root | null>(null);
+
+     // Map backend category UUIDs (and normalized labels) -> {color, emoji}
+     const categoryStyleLookup = useMemo(() => {
+       const map = new Map<string, CategoryStyle>();
+       for (const c of categories) {
+         if (!c?.id) continue;
+         map.set(c.id, { color: c.color, emoji: c.icon });
+         if (c.label) {
+           map.set(normalizeKey(c.label), { color: c.color, emoji: c.icon });
+         }
+       }
+       return map;
+     }, [categories]);
 
     // Expose flyTo method via ref
     useImperativeHandle(ref, () => ({
@@ -249,11 +296,11 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
 
         if (existingMarker) {
           // Update existing marker icon
-          existingMarker.setIcon(createVenueIcon(venue, isSelected));
+          existingMarker.setIcon(createVenueIcon(venue, isSelected, categoryStyleLookup));
         } else {
           // Create new marker
           const marker = L.marker([venue.latitude, venue.longitude], {
-            icon: createVenueIcon(venue, isSelected),
+            icon: createVenueIcon(venue, isSelected, categoryStyleLookup),
           })
             .addTo(map)
             .on('click', (e) => {
@@ -264,7 +311,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
           markersRef.current.set(venue.id, marker);
         }
       });
-    }, [venues, selectedVenue, onVenueSelect]);
+    }, [venues, selectedVenue, onVenueSelect, categoryStyleLookup]);
 
     // Handle popup for selected venue
     useEffect(() => {
