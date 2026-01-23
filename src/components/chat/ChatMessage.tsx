@@ -4,6 +4,7 @@ import type { ChatMessage as ChatMessageType, SenderLabel } from './types';
 
 interface ChatMessageProps {
   message: ChatMessageType;
+  onVote?: (messageId: string, type: 'up' | 'down') => void;
 }
 
 const senderLabels: Record<SenderLabel, string> = {
@@ -13,8 +14,16 @@ const senderLabels: Record<SenderLabel, string> = {
   regular: 'Here often',
 };
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, onVote }: ChatMessageProps) {
   const timeAgo = getTimeAgo(message.timestamp);
+
+  const handleUpvote = () => {
+    onVote?.(message.id, 'up');
+  };
+
+  const handleDownvote = () => {
+    onVote?.(message.id, 'down');
+  };
 
   return (
     <div className="group">
@@ -35,10 +44,16 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
         {/* Vote buttons - show on hover */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button className="p-1.5 rounded-full hover:bg-secondary/50 text-muted-foreground hover:text-primary transition-colors">
+          <button 
+            onClick={handleUpvote}
+            className="p-1.5 rounded-full hover:bg-secondary/50 text-muted-foreground hover:text-primary transition-colors"
+          >
             <ThumbsUp className="w-3.5 h-3.5" />
           </button>
-          <button className="p-1.5 rounded-full hover:bg-secondary/50 text-muted-foreground hover:text-destructive transition-colors">
+          <button 
+            onClick={handleDownvote}
+            className="p-1.5 rounded-full hover:bg-secondary/50 text-muted-foreground hover:text-destructive transition-colors"
+          >
             <ThumbsDown className="w-3.5 h-3.5" />
           </button>
         </div>

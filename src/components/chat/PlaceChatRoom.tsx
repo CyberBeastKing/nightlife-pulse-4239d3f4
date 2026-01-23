@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Send, AlertCircle, Loader2 } from 'lucide-react';
 import { CrowdSignals } from './CrowdSignals';
 import { ChatMessage } from './ChatMessage';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import type { PlaceChatDetails } from './types';
+import { useVenueChat } from '@/hooks/useVenueChat';
+import { useAuth } from '@/hooks/useAuth';
+import type { PlaceChatDetails, SenderLabel } from './types';
 
 interface PlaceChatRoomProps {
   chat: PlaceChatDetails;
@@ -13,8 +15,36 @@ interface PlaceChatRoomProps {
 
 export function PlaceChatRoom({ chat, onBack }: PlaceChatRoomProps) {
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState(chat.messages);
+  const [isSending, setIsSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  
+  const {
+    messages,
+    isLoading,
+    error,
+    setVenueChatId,
+    getOrCreateVenueChat,
+    fetchMessages,
+    sendMessage,
+    voteMessage,
+  } = useVenueChat();
+
+  // Initialize chat room
+  useEffect(() => {
+    const initChat = async () => {
+      // Extract venue ID from chat id (format: "venue-{id}" or just the id)
+      const venueId = chat.id.startsWith('venue-') ? chat.id.replace('venue-', '') : chat.id;
+      
+      const chatId = await getOrCreateVenueChat(venueId, chat.placeName, chat.category);
+      if (chatId) {
+        setVenueChatId(chatId);
+        await fetchMessages(chatId);
+      }
+    };
+    
+    initChat();
+  }, [chat.id, chat.placeName, chat.category, getOrCreateVenueChat, setVenueChatId, fetchMessages]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -23,21 +53,28 @@ export function PlaceChatRoom({ chat, onBack }: PlaceChatRoomProps) {
     }
   }, [messages]);
 
-  const handleSend = () => {
-    if (!message.trim()) return;
+  const handleSend = async () => {
+    if (!message.trim() || isSending) return;
 
-    // Add message locally (in real app, this would go to backend)
-    const newMessage = {
-      id: `msg-${Date.now()}`,
-      content: message.trim(),
-      senderLabel: 'just_arrived' as const,
-      timestamp: new Date(),
-      upvotes: 0,
-      downvotes: 0,
-    };
+    // Extract venue ID and get chat ID
+    const venueId = chat.id.startsWith('venue-') ? chat.id.replace('venue-', '') : chat.id;
+    const chatId = await getOrCreateVenueChat(venueId, chat.placeName, chat.category);
+    
+    if (!chatId) return;
 
-    setMessages(prev => [...prev, newMessage]);
-    setMessage('');
+    setIsSending(true);
+    
+    // Randomly assign a sender label for anonymity
+    const labels: SenderLabel[] = ['someone_nearby', 'just_arrived', 'leaving_soon', 'regular'];
+    const randomLabel = labels[Math.floor(Math.random() * labels.length)];
+    
+    const success = await sendMessage(chatId, message.trim(), randomLabel);
+    
+    if (success) {
+      setMessage('');
+    }
+    
+    setIsSending(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -46,6 +83,13 @@ export function PlaceChatRoom({ chat, onBack }: PlaceChatRoomProps) {
       handleSend();
     }
   };
+
+  const handleVote = async (messageId: string, type: 'up' | 'down') => {
+    await voteMessage(messageId, type);
+  };
+
+  // Combine real-time messages with any initial mock messages
+  const displayMessages = messages.length > 0 ? messages : chat.messages;
 
   return (
     <div className="flex flex-col h-full">
@@ -88,14 +132,32 @@ export function PlaceChatRoom({ chat, onBack }: PlaceChatRoomProps) {
           </span>
         </div>
 
+        {/* Loading state */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        )}
+
+        {/* Error state */}
+        {error && (
+          <div className="text-center py-4">
+            <p className="text-destructive text-sm">{error}</p>
+          </div>
+        )}
+
         {/* Messages */}
         <div className="space-y-4">
-          {messages.map(msg => (
-            <ChatMessage key={msg.id} message={msg} />
+          {displayMessages.map(msg => (
+            <ChatMessage 
+              key={msg.id} 
+              message={msg} 
+              onVote={handleVote}
+            />
           ))}
         </div>
 
-        {messages.length === 0 && (
+        {displayMessages.length === 0 && !isLoading && (
           <div className="text-center py-8">
             <p className="text-muted-foreground text-sm">No messages yet</p>
             <p className="text-muted-foreground/70 text-xs mt-1">Be the first to share what's happening</p>
@@ -105,27 +167,41 @@ export function PlaceChatRoom({ chat, onBack }: PlaceChatRoomProps) {
 
       {/* Input area */}
       <div className="glass-strong border-t border-border/50 p-4 pb-safe">
-        <div className="flex items-end gap-2">
-          <Textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="What's the vibe right now?"
-            className="min-h-[44px] max-h-[120px] resize-none bg-secondary/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
-            rows={1}
-          />
-          <Button
-            onClick={handleSend}
-            disabled={!message.trim()}
-            size="icon"
-            className="shrink-0 h-11 w-11 rounded-full"
-          >
-            <Send className="w-5 h-5" />
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground/50 mt-2 text-center">
-          Rate-limited • No private messages • Place-focused
-        </p>
+        {user ? (
+          <>
+            <div className="flex items-end gap-2">
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="What's the vibe right now?"
+                className="min-h-[44px] max-h-[120px] resize-none bg-secondary/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
+                rows={1}
+                maxLength={500}
+                disabled={isSending}
+              />
+              <Button
+                onClick={handleSend}
+                disabled={!message.trim() || isSending}
+                size="icon"
+                className="shrink-0 h-11 w-11 rounded-full"
+              >
+                {isSending ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground/50 mt-2 text-center">
+              Rate-limited • No private messages • Place-focused
+            </p>
+          </>
+        ) : (
+          <div className="text-center py-2">
+            <p className="text-muted-foreground text-sm">Sign in to join the conversation</p>
+          </div>
+        )}
       </div>
     </div>
   );
