@@ -26,16 +26,16 @@ serve(async (req) => {
     // Since the location is stored as WKB, we need to use ST_X and ST_Y to extract coordinates
     // We'll call an RPC function or use a view - for now, let's try fetching with a raw query
     
-    // Fetch categories first
+    // Fetch categories first (table is named 'categories' plural)
     const { data: rawCategories, error: catError } = await externalSupabase
-      .from('category')
+      .from('categories')
       .select('id, name, icon, color');
     
     if (catError) {
       console.error('Error fetching categories:', catError);
     }
 
-    // Fetch places with their category from the joined category table
+    // Fetch places with their category from the joined categories table
     const { data: rawPlaces, error: rawError } = await externalSupabase
       .from('places')
       .select('*, category:category_id(id, name)');
