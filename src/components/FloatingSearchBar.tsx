@@ -5,6 +5,13 @@ import { utilityCategories } from '@/data/mockVenues';
 import { Venue } from '@/types/venue';
 import { CategoryData } from '@/hooks/useExternalVenues';
 
+const normalizeLabel = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[^a-z0-9]+/g, '');
+
 interface FloatingSearchBarProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
@@ -30,17 +37,38 @@ export function FloatingSearchBar({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  const utilityCategoryIds = useMemo(() => {
-    return new Set(utilityCategories.map((c) => c.id));
+  // We use LABEL-based matching (not IDs) because backend category IDs are UUIDs,
+  // while our curated utility list uses slugs. This prevents duplicates.
+  const utilityLabelSet = useMemo(() => {
+    return new Set(utilityCategories.map((c) => normalizeLabel(c.label)));
   }, []);
+
+  // Build utility items that use backend IDs when available (so filtering works).
+  const utilityCategoriesResolved = useMemo(() => {
+    const backendByNormLabel = new Map<string, CategoryData>();
+    for (const c of categories) backendByNormLabel.set(normalizeLabel(c.label), c);
+
+    return utilityCategories
+      .map((u) => {
+        const match = backendByNormLabel.get(normalizeLabel(u.label));
+        return {
+          ...u,
+          // prefer backend id so selection maps to venue.category UUIDs
+          id: match?.id ?? u.id,
+        };
+      })
+      // Avoid rendering duplicates if backend already includes these in the main list
+      // (we filter them out there, but keep this list strictly curated).
+      .filter((u, idx, arr) => idx === arr.findIndex((x) => normalizeLabel(x.label) === normalizeLabel(u.label)));
+  }, [categories]);
 
   // Only show non-utility categories in the main row;
   // utility categories belong exclusively in the "More" section.
   const primaryCategories = useMemo(() => {
-    return categories.filter((c) => !utilityCategoryIds.has(c.id));
-  }, [categories, utilityCategoryIds]);
+    return categories.filter((c) => !utilityLabelSet.has(normalizeLabel(c.label)));
+  }, [categories, utilityLabelSet]);
 
-  const hasUtilitySelected = utilityCategories.some((c) => selectedCategories.has(c.id));
+  const hasUtilitySelected = utilityCategoriesResolved.some((c) => selectedCategories.has(c.id));
 
   // Filter suggestions based on search value
   const suggestions = useMemo(() => {
@@ -195,7 +223,7 @@ export function FloatingSearchBar({
       {/* Utility Categories Dropdown */}
       {showMore && (
         <div className="flex justify-center gap-2 flex-wrap animate-fade-in">
-        {utilityCategories.map((category) => {
+        {utilityCategoriesResolved.map((category) => {
           const isSelected = selectedCategories.has(category.id);
           return (
             <button
