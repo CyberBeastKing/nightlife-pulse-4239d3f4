@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { mockVenues } from '@/data/mockVenues';
+import { mockVenues, categories as fallbackCategories } from '@/data/mockVenues';
 import { LeafletMap, LeafletMapRef } from './LeafletMap';
 import { VenueCard } from './VenueCard';
 import { FloatingSearchBar } from './FloatingSearchBar';
@@ -18,9 +18,10 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | undefined>();
   const mapRef = useRef<LeafletMapRef>(null);
   
-  // Fetch venues from external Supabase, fallback to mock data
-  const { data: externalVenues, isLoading, error } = useExternalVenues();
-  const venues = externalVenues && externalVenues.length > 0 ? externalVenues : mockVenues;
+  // Fetch venues and categories from external Supabase, fallback to mock data
+  const { data: externalData, isLoading, error } = useExternalVenues();
+  const venues = externalData?.venues && externalData.venues.length > 0 ? externalData.venues : mockVenues;
+  const categories = externalData?.categories && externalData.categories.length > 0 ? externalData.categories : fallbackCategories;
 
   if (error) {
     console.warn('Using mock data - external fetch failed:', error);
@@ -104,6 +105,7 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         selectedCategories={selectedCategories}
         onCategoryToggle={onCategoryToggle}
         venues={venues}
+        categories={categories}
         onVenueSelect={handleVenueSelectFromSearch}
       />
 

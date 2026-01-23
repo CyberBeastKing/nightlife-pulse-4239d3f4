@@ -26,10 +26,19 @@ serve(async (req) => {
     // Since the location is stored as WKB, we need to use ST_X and ST_Y to extract coordinates
     // We'll call an RPC function or use a view - for now, let's try fetching with a raw query
     
+    // Fetch categories first
+    const { data: rawCategories, error: catError } = await externalSupabase
+      .from('category')
+      .select('id, name, icon, color');
+    
+    if (catError) {
+      console.error('Error fetching categories:', catError);
+    }
+
     // Fetch places with their category from the joined category table
     const { data: rawPlaces, error: rawError } = await externalSupabase
       .from('places')
-      .select('*, category:category_id(name)');
+      .select('*, category:category_id(id, name)');
       
     if (rawError) {
       console.error('Error fetching places:', rawError);
@@ -70,28 +79,38 @@ serve(async (req) => {
       }
     };
 
-    // Map external category names to our app's category types
-    const mapCategory = (categoryName: string | null): string => {
-      if (!categoryName) return 'bar';
-      const name = categoryName.toLowerCase();
-      
-      // Map common category names to our types
-      if (name.includes('bar') || name.includes('pub') || name.includes('tavern')) return 'bar';
-      if (name.includes('club') || name.includes('nightclub') || name.includes('night club')) return 'nightclub';
-      if (name.includes('lounge')) return 'lounge';
-      if (name.includes('restaurant') || name.includes('food') || name.includes('grill') || name.includes('dining')) return 'restaurant';
-      if (name.includes('coffee') || name.includes('cafe') || name.includes('café')) return 'coffee';
-      if (name.includes('entertainment') || name.includes('arcade') || name.includes('bowling')) return 'entertainment';
-      if (name.includes('music') || name.includes('concert') || name.includes('venue')) return 'live_music';
-      if (name.includes('brewery') || name.includes('brew')) return 'brewery';
-      if (name.includes('sports')) return 'sports_bar';
-      
-      return 'bar'; // default fallback
+    // Build a category lookup map from the fetched categories
+    const categoryMap = new Map<string, { id: string; name: string }>();
+    (rawCategories || []).forEach((cat: any) => {
+      categoryMap.set(cat.id, { id: cat.id, name: cat.name });
+    });
+
+    // Format categories for the frontend
+    const defaultIcons: Record<string, string> = {
+      bar: '🍺', nightclub: '🎶', lounge: '🍸', restaurant: '🍽️', 
+      coffee: '☕', entertainment: '🎮', live_music: '🎵', brewery: '🍻',
+      sports_bar: '🏈', events: '🎟️', parks: '🌳', college: '🏫',
     };
+    const defaultColors: Record<string, string> = {
+      bar: '#FFB020', nightclub: '#8B5CF6', lounge: '#2DD4BF', restaurant: '#EF4444',
+      coffee: '#A16207', entertainment: '#38BDF8', live_music: '#8B5CF6', brewery: '#F59E0B',
+      sports_bar: '#22C55E', events: '#EC4899', parks: '#16A34A', college: '#1E3A8A',
+    };
+
+    const categories = (rawCategories || []).map((cat: any) => {
+      const nameKey = cat.name?.toLowerCase().replace(/\s+/g, '_') || 'bar';
+      return {
+        id: cat.id,
+        label: cat.name || 'Unknown',
+        icon: cat.icon || defaultIcons[nameKey] || '📍',
+        color: cat.color || defaultColors[nameKey] || '#FFB020',
+      };
+    });
 
     const venues = (rawPlaces || []).map((place: any) => {
       const coords = parseWKB(place.location);
-      const categoryName = place.category?.name || null;
+      // Use the category_id directly as the category identifier
+      const categoryId = place.category?.id || null;
       
       return {
         id: place.id,
@@ -99,7 +118,7 @@ serve(async (req) => {
         address: place.google_address || place.address,
         latitude: coords?.lat || 0,
         longitude: coords?.lng || 0,
-        category: mapCategory(categoryName),
+        category: categoryId, // Use the actual category UUID
         place_type: place.place_type || 'social',
         hot_streak: place.hot_streak || 'quiet',
         current_crowd_count: place.current_crowd_count || 0,
@@ -110,7 +129,9 @@ serve(async (req) => {
 
     const validVenues = venues.filter((v: any) => v.latitude !== 0 && v.longitude !== 0);
     console.log('Successfully processed places:', validVenues.length, 'valid venues out of', venues.length, 'total');
-    return new Response(JSON.stringify({ venues: validVenues }), {
+    console.log('Categories found:', categories.length);
+    
+    return new Response(JSON.stringify({ venues: validVenues, categories }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });

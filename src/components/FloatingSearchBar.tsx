@@ -1,8 +1,9 @@
 import { Search, X, ChevronDown, MapPin } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { categories, utilityCategories } from '@/data/mockVenues';
+import { utilityCategories } from '@/data/mockVenues';
 import { Venue } from '@/types/venue';
+import { CategoryData } from '@/hooks/useExternalVenues';
 
 interface FloatingSearchBarProps {
   searchValue: string;
@@ -10,6 +11,7 @@ interface FloatingSearchBarProps {
   selectedCategories: Set<string>;
   onCategoryToggle: (categoryId: string) => void;
   venues?: Venue[];
+  categories?: CategoryData[];
   onVenueSelect?: (venue: Venue) => void;
 }
 
@@ -19,6 +21,7 @@ export function FloatingSearchBar({
   selectedCategories,
   onCategoryToggle,
   venues = [],
+  categories = [],
   onVenueSelect,
 }: FloatingSearchBarProps) {
   const [isFocused, setIsFocused] = useState(false);
