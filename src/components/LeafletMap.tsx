@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Venue } from '@/types/venue';
@@ -9,6 +9,10 @@ interface LeafletMapProps {
   selectedVenue: Venue | null;
   onVenueSelect: (venue: Venue | null) => void;
   userLocation?: { lat: number; lng: number };
+}
+
+export interface LeafletMapRef {
+  flyTo: (lat: number, lng: number, zoom?: number) => void;
 }
 
 // Get marker color based on category (Hawkly POI Color System)
@@ -146,180 +150,191 @@ const createUserIcon = () => {
   });
 };
 
-export function LeafletMap({ venues, selectedVenue, onVenueSelect, userLocation }: LeafletMapProps) {
-  const mapRef = useRef<L.Map | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const markersRef = useRef<Map<string, L.Marker>>(new Map());
-  const userMarkerRef = useRef<L.Marker | null>(null);
+export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
+  ({ venues, selectedVenue, onVenueSelect, userLocation }, ref) => {
+    const mapRef = useRef<L.Map | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const markersRef = useRef<Map<string, L.Marker>>(new Map());
+    const userMarkerRef = useRef<L.Marker | null>(null);
 
-  // Initialize map
-  useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    // Expose flyTo method via ref
+    useImperativeHandle(ref, () => ({
+      flyTo: (lat: number, lng: number, zoom: number = 16) => {
+        if (mapRef.current) {
+          mapRef.current.flyTo([lat, lng], zoom, { duration: 1.2 });
+        }
+      },
+    }));
 
-    // Default center (Cuyahoga Falls, OH)
-    const defaultCenter: L.LatLngExpression = [41.1339, -81.4846];
-    const center = userLocation ? [userLocation.lat, userLocation.lng] as L.LatLngExpression : defaultCenter;
+    // Initialize map
+    useEffect(() => {
+      if (!containerRef.current || mapRef.current) return;
 
-    const map = L.map(containerRef.current, {
-      center,
-      zoom: 13,
-      zoomControl: false,
-    });
+      // Default center (Cuyahoga Falls, OH)
+      const defaultCenter: L.LatLngExpression = [41.1339, -81.4846];
+      const center = userLocation ? [userLocation.lat, userLocation.lng] as L.LatLngExpression : defaultCenter;
 
-    // Add MapTiler Backdrop tiles (ultra-dark style)
-    L.tileLayer('https://api.maptiler.com/maps/backdrop-dark/{z}/{x}/{y}.png?key=sBCotOB5AWbR0C8uxgb9', {
-      tileSize: 512,
-      zoomOffset: -1,
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
+      const map = L.map(containerRef.current, {
+        center,
+        zoom: 13,
+        zoomControl: false,
+      });
 
-    // Add zoom control to bottom right
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
+      // Add MapTiler Backdrop tiles (ultra-dark style)
+      L.tileLayer('https://api.maptiler.com/maps/backdrop-dark/{z}/{x}/{y}.png?key=sBCotOB5AWbR0C8uxgb9', {
+        tileSize: 512,
+        zoomOffset: -1,
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
 
-    mapRef.current = map;
+      // Add zoom control to bottom right
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Click on map to deselect
-    map.on('click', () => {
-      onVenueSelect(null);
-    });
+      mapRef.current = map;
 
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-  }, []);
+      // Click on map to deselect
+      map.on('click', () => {
+        onVenueSelect(null);
+      });
 
-  // Update user location marker
-  useEffect(() => {
-    if (!mapRef.current || !userLocation) return;
+      return () => {
+        map.remove();
+        mapRef.current = null;
+      };
+    }, []);
 
-    if (userMarkerRef.current) {
-      userMarkerRef.current.setLatLng([userLocation.lat, userLocation.lng]);
-    } else {
-      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
-        icon: createUserIcon(),
-        zIndexOffset: 1000,
-      }).addTo(mapRef.current);
-    }
-  }, [userLocation]);
+    // Update user location marker
+    useEffect(() => {
+      if (!mapRef.current || !userLocation) return;
 
-  // Update venue markers (no clustering)
-  useEffect(() => {
-    if (!mapRef.current) return;
-
-    const map = mapRef.current;
-    const currentVenueIds = new Set(venues.map(v => v.id));
-
-    // Remove markers that are no longer in venues
-    markersRef.current.forEach((marker, id) => {
-      if (!currentVenueIds.has(id)) {
-        marker.remove();
-        markersRef.current.delete(id);
-      }
-    });
-
-    // Add or update markers
-    venues.forEach(venue => {
-      const isSelected = selectedVenue?.id === venue.id;
-      const existingMarker = markersRef.current.get(venue.id);
-
-      if (existingMarker) {
-        // Update existing marker icon
-        existingMarker.setIcon(createVenueIcon(venue, isSelected));
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setLatLng([userLocation.lat, userLocation.lng]);
       } else {
-        // Create new marker
-        const marker = L.marker([venue.latitude, venue.longitude], {
-          icon: createVenueIcon(venue, isSelected),
-        })
-          .addTo(map)
-          .on('click', (e) => {
-            L.DomEvent.stopPropagation(e);
-            onVenueSelect(venue);
-          });
-
-        markersRef.current.set(venue.id, marker);
+        userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
+          icon: createUserIcon(),
+          zIndexOffset: 1000,
+        }).addTo(mapRef.current);
       }
-    });
-  }, [venues, selectedVenue, onVenueSelect]);
+    }, [userLocation]);
 
-  // Handle recenter
-  const handleRecenter = () => {
-    if (!mapRef.current) return;
-    const center = userLocation 
-      ? [userLocation.lat, userLocation.lng] as L.LatLngExpression
-      : [41.1339, -81.4846] as L.LatLngExpression;
-    mapRef.current.flyTo(center, 14, { duration: 1 });
-  };
+    // Update venue markers (no clustering)
+    useEffect(() => {
+      if (!mapRef.current) return;
 
-  return (
-    <div className="relative w-full h-full">
-      <div ref={containerRef} className="w-full h-full" />
-      
-      {/* Recenter button */}
-      <button
-        onClick={handleRecenter}
-        className={cn(
-          "absolute bottom-24 right-4 z-[1000]",
-          "glass p-3 rounded-full",
-          "hover:bg-secondary/50 transition-colors"
-        )}
-        aria-label="Recenter map"
-      >
-        <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
-        </svg>
-      </button>
+      const map = mapRef.current;
+      const currentVenueIds = new Set(venues.map(v => v.id));
 
-      {/* Custom styles for markers and ultra-dark map */}
-      <style>{`
-        /* Ultra-dark map tiles */
-        .leaflet-tile-pane {
-          filter: brightness(0.7) saturate(0.9);
+      // Remove markers that are no longer in venues
+      markersRef.current.forEach((marker, id) => {
+        if (!currentVenueIds.has(id)) {
+          marker.remove();
+          markersRef.current.delete(id);
         }
-        
-        @keyframes userPulse {
-          0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-          50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
-        }
-        
-        .venue-marker-container:hover {
-          transform: scale(1.15);
-        }
+      });
 
-        .leaflet-control-zoom {
-          background: hsl(var(--card)) !important;
-          backdrop-filter: blur(12px);
-          border-radius: 12px !important;
-          border: none !important;
-          overflow: hidden;
+      // Add or update markers
+      venues.forEach(venue => {
+        const isSelected = selectedVenue?.id === venue.id;
+        const existingMarker = markersRef.current.get(venue.id);
+
+        if (existingMarker) {
+          // Update existing marker icon
+          existingMarker.setIcon(createVenueIcon(venue, isSelected));
+        } else {
+          // Create new marker
+          const marker = L.marker([venue.latitude, venue.longitude], {
+            icon: createVenueIcon(venue, isSelected),
+          })
+            .addTo(map)
+            .on('click', (e) => {
+              L.DomEvent.stopPropagation(e);
+              onVenueSelect(venue);
+            });
+
+          markersRef.current.set(venue.id, marker);
         }
+      });
+    }, [venues, selectedVenue, onVenueSelect]);
+
+    // Handle recenter
+    const handleRecenter = () => {
+      if (!mapRef.current) return;
+      const center = userLocation 
+        ? [userLocation.lat, userLocation.lng] as L.LatLngExpression
+        : [41.1339, -81.4846] as L.LatLngExpression;
+      mapRef.current.flyTo(center, 14, { duration: 1 });
+    };
+
+    return (
+      <div className="relative w-full h-full">
+        <div ref={containerRef} className="w-full h-full" />
         
-        .leaflet-control-zoom a {
-          background: transparent !important;
-          color: hsl(var(--foreground)) !important;
-          border: none !important;
-          width: 36px !important;
-          height: 36px !important;
-          line-height: 36px !important;
-        }
-        
-        .leaflet-control-zoom a:hover {
-          background: hsl(var(--secondary)) !important;
-        }
-        
-        .leaflet-control-attribution {
-          background: hsl(var(--background) / 0.8) !important;
-          color: hsl(var(--muted-foreground)) !important;
-          font-size: 10px !important;
-          padding: 2px 6px !important;
-        }
-        
-        .leaflet-control-attribution a {
-          color: hsl(var(--primary)) !important;
-        }
-      `}</style>
-    </div>
-  );
-}
+        {/* Recenter button */}
+        <button
+          onClick={handleRecenter}
+          className={cn(
+            "absolute bottom-24 right-4 z-[1000]",
+            "glass p-3 rounded-full",
+            "hover:bg-secondary/50 transition-colors"
+          )}
+          aria-label="Recenter map"
+        >
+          <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+          </svg>
+        </button>
+
+        {/* Custom styles for markers and ultra-dark map */}
+        <style>{`
+          /* Ultra-dark map tiles */
+          .leaflet-tile-pane {
+            filter: brightness(0.7) saturate(0.9);
+          }
+          
+          @keyframes userPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+          }
+          
+          .venue-marker-container:hover {
+            transform: scale(1.15);
+          }
+
+          .leaflet-control-zoom {
+            background: hsl(var(--card)) !important;
+            backdrop-filter: blur(12px);
+            border-radius: 12px !important;
+            border: none !important;
+            overflow: hidden;
+          }
+          
+          .leaflet-control-zoom a {
+            background: transparent !important;
+            color: hsl(var(--foreground)) !important;
+            border: none !important;
+            width: 36px !important;
+            height: 36px !important;
+            line-height: 36px !important;
+          }
+          
+          .leaflet-control-zoom a:hover {
+            background: hsl(var(--secondary)) !important;
+          }
+          
+          .leaflet-control-attribution {
+            background: hsl(var(--background) / 0.8) !important;
+            color: hsl(var(--muted-foreground)) !important;
+            font-size: 10px !important;
+            padding: 2px 6px !important;
+          }
+          
+          .leaflet-control-attribution a {
+            color: hsl(var(--primary)) !important;
+          }
+        `}</style>
+      </div>
+    );
+  }
+);

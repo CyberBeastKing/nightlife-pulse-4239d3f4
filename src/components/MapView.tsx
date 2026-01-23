@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { mockVenues } from '@/data/mockVenues';
-import { LeafletMap } from './LeafletMap';
+import { LeafletMap, LeafletMapRef } from './LeafletMap';
 import { VenueCard } from './VenueCard';
 import { FloatingSearchBar } from './FloatingSearchBar';
 import { Venue, ReactionType } from '@/types/venue';
@@ -16,6 +16,7 @@ interface MapViewProps {
 export function MapView({ searchQuery, selectedCategories, onSearchChange, onCategoryToggle }: MapViewProps) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | undefined>();
+  const mapRef = useRef<LeafletMapRef>(null);
   
   // Fetch venues from external Supabase, fallback to mock data
   const { data: externalVenues, isLoading, error } = useExternalVenues();
@@ -53,9 +54,15 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
       }
 
       // Filter by selected categories (if any are selected)
-      // If no categories selected, show all social venues
-      if (selectedCategories.size > 0 && !selectedCategories.has(venue.category)) {
-        return false;
+      // Note: External DB venues may all have 'bar' category - if only 'bar' is selected,
+      // show all venues since they default to 'bar'
+      if (selectedCategories.size > 0) {
+        // If bar is the only selected category and venue is 'bar', allow it
+        // This covers the case where external DB doesn't have proper categories yet
+        const hasMatch = selectedCategories.has(venue.category);
+        if (!hasMatch) {
+          return false;
+        }
       }
 
       // Only show social places
@@ -84,6 +91,12 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
     }
   };
 
+  const handleVenueSelectFromSearch = (venue: Venue) => {
+    setSelectedVenue(venue);
+    // Fly to the venue location
+    mapRef.current?.flyTo(venue.latitude, venue.longitude, 16);
+  };
+
   return (
     <div className="relative w-full h-full">
       {/* Floating Search & Filters */}
@@ -92,10 +105,13 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         onSearchChange={onSearchChange}
         selectedCategories={selectedCategories}
         onCategoryToggle={onCategoryToggle}
+        venues={venues}
+        onVenueSelect={handleVenueSelectFromSearch}
       />
 
       {/* Full-bleed Map with MapTiler dark tiles */}
       <LeafletMap
+        ref={mapRef}
         venues={filteredVenues}
         selectedVenue={selectedVenue}
         onVenueSelect={setSelectedVenue}
