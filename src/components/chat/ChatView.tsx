@@ -1,11 +1,40 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { MessageCircle, Filter, Clock } from 'lucide-react';
 import { PlaceChatCard } from './PlaceChatCard';
 import { PlaceChatRoom } from './PlaceChatRoom';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { PlaceChat, PlaceChatDetails } from './types';
+import { Venue } from '@/types/venue';
 
-// Mock data for active place chats
+// Hawkly POI styling lookup
+const CATEGORY_STYLES: Record<string, { emoji: string; color: string }> = {
+  bar: { emoji: '🍺', color: '#FFB020' },
+  bars: { emoji: '🍺', color: '#FFB020' },
+  nightclub: { emoji: '🎵', color: '#8B5CF6' },
+  nightclubs: { emoji: '🎵', color: '#8B5CF6' },
+  clubs: { emoji: '🎵', color: '#8B5CF6' },
+  lounge: { emoji: '🛋️', color: '#2DD4BF' },
+  lounges: { emoji: '🛋️', color: '#2DD4BF' },
+  bar_grill: { emoji: '🍔', color: '#FB923C' },
+  restaurant: { emoji: '🍽️', color: '#EF4444' },
+  food: { emoji: '🍽️', color: '#EF4444' },
+  coffee: { emoji: '☕', color: '#A16207' },
+  brewery: { emoji: '🍺', color: '#FFB020' },
+  sports_bar: { emoji: '🏟️', color: '#22C55E' },
+  live_music: { emoji: '🎵', color: '#8B5CF6' },
+  events: { emoji: '🎟️', color: '#EC4899' },
+  entertainment: { emoji: '🎬', color: '#38BDF8' },
+  sports_venue: { emoji: '🏟️', color: '#22C55E' },
+};
+
+const getCategoryStyle = (category: string) => {
+  const normalized = category?.toLowerCase().replace(/[^a-z0-9]+/g, '_') || '';
+  return CATEGORY_STYLES[normalized] || { emoji: '📍', color: '#9CA3AF' };
+};
+
+interface ChatViewProps {
+  initialVenue?: Venue | null;
+}
 const mockPlaceChats: PlaceChat[] = [
   {
     id: 'chat-1',
@@ -111,9 +140,29 @@ const mockMyChats: PlaceChat[] = [
   mockPlaceChats[2],
 ];
 
-export function ChatView() {
+export function ChatView({ initialVenue }: ChatViewProps) {
   const [selectedChat, setSelectedChat] = useState<PlaceChatDetails | null>(null);
   const [showFilter, setShowFilter] = useState(false);
+
+  // Handle initial venue from map popup chat button
+  useEffect(() => {
+    if (initialVenue) {
+      const style = getCategoryStyle(initialVenue.category);
+      const venueChat: PlaceChat = {
+        id: `venue-${initialVenue.id}`,
+        placeName: initialVenue.name,
+        category: initialVenue.category,
+        categoryEmoji: style.emoji,
+        categoryColor: style.color,
+        crowdStatus: initialVenue.current_crowd_count > 20 ? 'busy' : initialVenue.current_crowd_count > 8 ? 'active' : 'quiet',
+        distance: initialVenue.distance || 0.5,
+        recentMessageCount: Math.floor(Math.random() * 20) + 5,
+        lastActivity: new Date(),
+      };
+      const details = getMockChatDetails(venueChat);
+      setSelectedChat(details);
+    }
+  }, [initialVenue]);
 
   // Sort active chats by activity
   const sortedChats = useMemo(() => {

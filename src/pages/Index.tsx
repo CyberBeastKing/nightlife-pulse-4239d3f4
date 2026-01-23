@@ -9,6 +9,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<'map' | 'discover' | 'chat' | 'profile'>('map');
+  const [chatVenue, setChatVenue] = useState<Venue | null>(null);
 
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories(prev => {
@@ -32,6 +33,20 @@ const Index = () => {
     }
   };
 
+  const handleOpenVenueChat = (venue: Venue) => {
+    // Switch to chat tab and open this venue's chat room
+    setChatVenue(venue);
+    setActiveTab('chat');
+  };
+
+  // Clear chat venue when leaving chat tab
+  const handleTabChange = (tab: 'map' | 'discover' | 'chat' | 'profile') => {
+    if (tab !== 'chat') {
+      setChatVenue(null);
+    }
+    setActiveTab(tab);
+  };
+
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Full-bleed Map with floating UI */}
@@ -42,6 +57,7 @@ const Index = () => {
             selectedCategories={selectedCategories}
             onSearchChange={setSearchQuery}
             onCategoryToggle={handleCategoryToggle}
+            onOpenVenueChat={handleOpenVenueChat}
           />
         )}
 
@@ -50,7 +66,7 @@ const Index = () => {
         )}
 
         {activeTab === 'chat' && (
-          <ChatView />
+          <ChatView initialVenue={chatVenue} />
         )}
 
         {activeTab === 'profile' && (
@@ -65,7 +81,7 @@ const Index = () => {
       </main>
 
       {/* Bottom Navigation */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
     </div>
   );
 };
