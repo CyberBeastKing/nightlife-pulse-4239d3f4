@@ -1,9 +1,17 @@
 import { Search, X, ChevronDown, MapPin } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { utilityCategories } from '@/data/mockVenues';
+import { utilityCategories, excludedCategoryLabels } from '@/data/mockVenues';
 import { Venue } from '@/types/venue';
 import { CategoryData } from '@/hooks/useExternalVenues';
+
+// Check if a label matches any excluded category
+const isExcludedCategory = (label: string) => {
+  const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  return excludedCategoryLabels.some(ex => 
+    ex.toLowerCase().replace(/[^a-z0-9]+/g, '') === norm
+  );
+};
 
 const normalizeLabel = (value: string) =>
   value
@@ -62,10 +70,11 @@ export function FloatingSearchBar({
       .filter((u, idx, arr) => idx === arr.findIndex((x) => normalizeLabel(x.label) === normalizeLabel(u.label)));
   }, [categories]);
 
-  // Only show non-utility categories in the main row;
-  // utility categories belong exclusively in the "More" section.
+  // Only show non-utility and non-excluded categories in the main row
   const primaryCategories = useMemo(() => {
-    return categories.filter((c) => !utilityLabelSet.has(normalizeLabel(c.label)));
+    return categories.filter((c) => 
+      !utilityLabelSet.has(normalizeLabel(c.label)) && !isExcludedCategory(c.label)
+    );
   }, [categories, utilityLabelSet]);
 
   const hasUtilitySelected = utilityCategoriesResolved.some((c) => selectedCategories.has(c.id));
