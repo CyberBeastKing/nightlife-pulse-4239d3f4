@@ -66,20 +66,27 @@ const getMarkerSize = (hotStreak: string, crowdCount: number) => {
   return baseSize + crowdBonus;
 };
 
-// Get emoji for category
-const getCategoryEmoji = (category: string) => {
-  switch (category) {
-    case 'bar': return '🍺';
-    case 'nightclub': return '🎉';
-    case 'restaurant': return '🍔';
-    case 'coffee': return '☕';
-    case 'entertainment': return '🎭';
-    case 'brewery': return '🍻';
-    case 'lounge': return '🍸';
-    case 'sports_bar': return '🏈';
-    case 'live_music': return '🎵';
-    default: return '📍';
-  }
+// Get emoji for category (Hawkly POI System)
+const getCategoryEmoji = (category: string): string => {
+  const emojis: Record<string, string> = {
+    // Social & Nightlife
+    bar: '🍺',
+    nightclub: '🎶',
+    lounge: '🛋️',
+    bar_grill: '🍔',
+    restaurant: '🍽️',
+    coffee: '☕',
+    brewery: '🍺',
+    sports_bar: '🍔',
+    live_music: '🎶',
+    
+    // Entertainment & Events
+    events: '🎟️',
+    entertainment: '🎬',
+    sports_venue: '🏟️',
+  };
+  
+  return emojis[category] || '🎯';
 };
 
 // Create custom icon for venue
