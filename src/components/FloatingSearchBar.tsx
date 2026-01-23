@@ -163,7 +163,7 @@ export function FloatingSearchBar({
         {showSuggestions && suggestions.length > 0 && (
           <div
             ref={suggestionsRef}
-            className="absolute top-full left-0 right-0 mt-2 glass rounded-2xl overflow-hidden shadow-xl animate-fade-in"
+            className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl animate-fade-in z-[1100] border border-border/30"
           >
             {suggestions.map((venue) => (
               <button
