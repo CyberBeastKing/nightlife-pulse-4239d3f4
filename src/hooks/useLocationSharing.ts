@@ -118,7 +118,9 @@ export function useLocationSharing(): LocationSharingHook {
 
       if (error) throw error;
 
-      const inviteLink = `https://id-preview--57f78a59-a24c-4f38-afc9-570a200e9967.lovable.app/accept-invite?token=${data.invite_token}`;
+      // Use the current origin for the invite link
+      const baseUrl = window.location.origin;
+      const inviteLink = `${baseUrl}/accept-invite?token=${data.invite_token}`;
       const message = `Hey! I'm sharing my live location with you on Hawkly. Tap to accept: ${inviteLink}`;
 
       await fetchSharedUsers();
