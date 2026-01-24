@@ -3,6 +3,7 @@ import { MapView } from '@/components/MapView';
 import { BottomNav } from '@/components/BottomNav';
 import { DiscoverView } from '@/components/discover/DiscoverView';
 import { ChatView } from '@/components/chat/ChatView';
+import { ProfileView } from '@/components/profile/ProfileView';
 import { Venue } from '@/types/venue';
 
 const Index = () => {
@@ -69,15 +70,7 @@ const Index = () => {
           <ChatView initialVenue={chatVenue} />
         )}
 
-        {activeTab === 'profile' && (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            <div className="text-center p-8">
-              <span className="text-5xl mb-4 block">👤</span>
-              <h2 className="text-xl font-semibold mb-2">Profile</h2>
-              <p>Your nightlife stats coming soon</p>
-            </div>
-          </div>
-        )}
+        {activeTab === 'profile' && <ProfileView />}
       </main>
 
       {/* Bottom Navigation */}
