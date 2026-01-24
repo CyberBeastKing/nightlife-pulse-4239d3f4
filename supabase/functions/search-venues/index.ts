@@ -32,13 +32,12 @@ serve(async (req) => {
 
     const externalSupabase = createClient(externalSupabaseUrl, externalSupabaseKey);
 
-    // Search across ALL venues using ILIKE on name fields
-    // We search both 'name' and 'google_name' for better coverage
+    // Search across ALL venues using ILIKE on name field
     const { data: places, error } = await externalSupabase
       .from('places_overture')
       .select('*, category:category_id(id, name)')
       .eq('place_type', 'social')
-      .or(`name.ilike.%${query}%,google_name.ilike.%${query}%`)
+      .ilike('name', `%${query}%`)
       .limit(20);
 
     if (error) {
