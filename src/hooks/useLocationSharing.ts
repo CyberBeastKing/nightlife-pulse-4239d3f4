@@ -100,6 +100,52 @@ export function useLocationSharing(): LocationSharingHook {
     fetchSharedUsers();
   }, [fetchSharedUsers]);
 
+  // Subscribe to realtime changes
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('location-sharing-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'location_sharing',
+          filter: `sharer_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Location sharing change (as sharer):', payload);
+          // Refresh the list when any change occurs
+          fetchSharedUsers();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'location_sharing',
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Location sharing change (as recipient):', payload);
+          // Refresh the list when someone shares with us or updates
+          fetchSharedUsers();
+          
+          // Show toast for accepted invites
+          if (payload.eventType === 'UPDATE' && payload.new.status === 'accepted') {
+            toast.success('Someone accepted your location sharing invite!');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchSharedUsers]);
+
   const createInvite = useCallback(async () => {
     if (!user) {
       toast.error('Please sign in to share your location');
