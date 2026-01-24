@@ -37,20 +37,26 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
 
   const filteredVenues = useMemo(() => {
     return venues.filter((venue) => {
-      // Filter by search query
-      if (searchQuery && !venue.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-        return false;
-      }
-
       // Only show social places
       if (venue.place_type !== 'social') {
         return false;
       }
 
+      // If there's a search query matching the venue, ALWAYS show it (bypass category filter)
+      const matchesSearch = searchQuery && venue.name.toLowerCase().includes(searchQuery.toLowerCase());
+      if (matchesSearch) {
+        return true;
+      }
+
+      // If there's a search query but venue doesn't match, hide it
+      if (searchQuery && !matchesSearch) {
+        return false;
+      }
+
+      // No search query - use category filtering
       // Filter by selected categories - if none selected, show nothing
-      // If categories are selected, only show venues matching those categories
       if (selectedCategories.size === 0) {
-        return false; // No categories selected = no markers shown
+        return false;
       }
       
       if (!selectedCategories.has(venue.category)) {
@@ -85,9 +91,13 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
   };
 
   const handleVenueSelectFromSearch = (venue: Venue) => {
+    // Clear any category filters when searching to ensure the venue appears
+    // Then select the venue and fly to it
     setSelectedVenue(venue);
-    // Fly to the venue location
-    mapRef.current?.flyTo(venue.latitude, venue.longitude, 16);
+    // Small delay to allow map to update before flying
+    setTimeout(() => {
+      mapRef.current?.flyTo(venue.latitude, venue.longitude, 17);
+    }, 100);
   };
 
   return (

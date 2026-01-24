@@ -138,8 +138,8 @@ export function VenuePopup({
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-foreground truncate">{venue.name}</h2>
-          <p className="text-xs text-muted-foreground capitalize">
-            {String(venue.category || '').replace('_', ' ')}
+          <p className="text-xs text-muted-foreground">
+            {venue.address || 'Address unavailable'}
           </p>
         </div>
         <button
@@ -241,7 +241,7 @@ export function VenuePopup({
           className={cn(
             "flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2",
             canCheckIn
-              ? "bg-primary text-primary-foreground hover:opacity-90"
+              ? "bg-[#8B5CF6] text-white hover:bg-[#7C3AED]"
               : "bg-secondary text-muted-foreground cursor-not-allowed"
           )}
         >
@@ -256,14 +256,14 @@ export function VenuePopup({
         </button>
         <button
           onClick={onChat}
-          className="p-2 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
+          className="p-2 bg-[#22C55E] text-white rounded-lg hover:bg-[#16A34A] transition-colors"
           aria-label="Open chat"
         >
           <MessageCircle className="w-4 h-4" />
         </button>
         <button
           onClick={onNavigate}
-          className="p-2 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
+          className="p-2 bg-[#3B82F6] text-white rounded-lg hover:bg-[#2563EB] transition-colors"
           aria-label="Navigate"
         >
           <Navigation className="w-4 h-4" />
