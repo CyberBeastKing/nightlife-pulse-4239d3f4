@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'rea
 import { createRoot, Root } from 'react-dom/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Venue, ReactionType } from '@/types/venue';
 import { cn } from '@/lib/utils';
 import { VenuePopup } from './VenuePopup';
@@ -208,6 +211,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
     const mapRef = useRef<L.Map | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<Map<string, L.Marker>>(new Map());
+    const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
     const userMarkerRef = useRef<L.Marker | null>(null);
     const popupRef = useRef<L.Popup | null>(null);
     const popupRootRef = useRef<Root | null>(null);
@@ -273,6 +277,37 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
 
       mapRef.current = map;
 
+      // Initialize marker cluster group with custom styling
+      const clusterGroup = L.markerClusterGroup({
+        maxClusterRadius: 60,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        disableClusteringAtZoom: 16,
+        iconCreateFunction: (cluster) => {
+          const count = cluster.getChildCount();
+          let size = 40;
+          let className = 'cluster-small';
+          
+          if (count > 100) {
+            size = 56;
+            className = 'cluster-large';
+          } else if (count > 30) {
+            size = 48;
+            className = 'cluster-medium';
+          }
+          
+          return L.divIcon({
+            html: `<div class="cluster-marker ${className}"><span>${count}</span></div>`,
+            className: 'marker-cluster-custom',
+            iconSize: L.point(size, size),
+          });
+        },
+      });
+      
+      map.addLayer(clusterGroup);
+      clusterGroupRef.current = clusterGroup;
+
       // Click on map to deselect
       map.on('click', () => {
         onVenueSelect(null);
@@ -288,6 +323,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
       return () => {
         map.remove();
         mapRef.current = null;
+        clusterGroupRef.current = null;
       };
     }, []);
 
@@ -305,17 +341,17 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
       }
     }, [userLocation]);
 
-    // Update venue markers (no clustering)
+    // Update venue markers with clustering
     useEffect(() => {
-      if (!mapRef.current) return;
+      if (!mapRef.current || !clusterGroupRef.current) return;
 
-      const map = mapRef.current;
+      const clusterGroup = clusterGroupRef.current;
       const currentVenueIds = new Set(venues.map(v => v.id));
 
       // Remove markers that are no longer in venues
       markersRef.current.forEach((marker, id) => {
         if (!currentVenueIds.has(id)) {
-          marker.remove();
+          clusterGroup.removeLayer(marker);
           markersRef.current.delete(id);
         }
       });
@@ -329,16 +365,15 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
           // Update existing marker icon
           existingMarker.setIcon(createVenueIcon(venue, isSelected, categoryStyleLookup));
         } else {
-          // Create new marker
+          // Create new marker and add to cluster group
           const marker = L.marker([venue.latitude, venue.longitude], {
             icon: createVenueIcon(venue, isSelected, categoryStyleLookup),
-          })
-            .addTo(map)
-            .on('click', (e) => {
-              L.DomEvent.stopPropagation(e);
-              onVenueSelect(venue);
-            });
+          }).on('click', (e) => {
+            L.DomEvent.stopPropagation(e);
+            onVenueSelect(venue);
+          });
 
+          clusterGroup.addLayer(marker);
           markersRef.current.set(venue.id, marker);
         }
       });
@@ -502,6 +537,58 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
           
           .venue-popup .leaflet-popup-tip-container {
             display: none;
+          }
+
+          /* Custom cluster marker styles */
+          .marker-cluster-custom {
+            background: transparent !important;
+          }
+          
+          .cluster-marker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.3);
+            animation: clusterPulse 3s infinite;
+          }
+          
+          .cluster-small {
+            background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+            font-size: 14px;
+          }
+          
+          .cluster-medium {
+            background: linear-gradient(135deg, #EC4899 0%, #BE185D 100%);
+            font-size: 16px;
+          }
+          
+          .cluster-large {
+            background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+            font-size: 18px;
+          }
+          
+          @keyframes clusterPulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+            50% { box-shadow: 0 4px 30px rgba(139,92,246,0.6); }
+          }
+          
+          .cluster-marker:hover {
+            transform: scale(1.1);
+            cursor: pointer;
+          }
+
+          /* Override default markercluster styles */
+          .marker-cluster div {
+            background-color: transparent !important;
+          }
+          
+          .leaflet-marker-icon.marker-cluster-custom {
+            background: transparent !important;
           }
         `}</style>
       </div>
