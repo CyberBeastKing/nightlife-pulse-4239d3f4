@@ -1,7 +1,7 @@
+import { useState } from 'react';
 import { Venue, ReactionType } from '@/types/venue';
 import { X, Users, Volume2, Zap, Navigation, MessageCircle, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useCheckIn } from '@/hooks/useCheckIn';
 
 interface VenuePopupProps {
   venue: Venue;
@@ -10,6 +10,9 @@ interface VenuePopupProps {
   onCheckIn: () => void;
   onChat: () => void;
   onNavigate: () => void;
+  // Location data passed from parent (since we can't use hooks in portal)
+  userCoords?: { lat: number; lng: number } | null;
+  isAuthenticated?: boolean;
 }
 
 const hotStreakBadge: Record<string, { label: string; class: string }> = {
@@ -39,14 +42,46 @@ const reactions: { type: ReactionType; emoji: string; label: string }[] = [
   { type: 'dead', emoji: '💀', label: 'DEAD' },
 ];
 
-export function VenuePopup({ venue, onClose, onReact, onCheckIn, onChat, onNavigate }: VenuePopupProps) {
+// Constants for check-in validation
+const MAX_GEOFENCE_DISTANCE = 30; // meters
+
+// Haversine formula for distance calculation
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export function VenuePopup({ 
+  venue, 
+  onClose, 
+  onReact, 
+  onCheckIn, 
+  onChat, 
+  onNavigate,
+  userCoords,
+  isAuthenticated = false,
+}: VenuePopupProps) {
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
+  
   const badge = hotStreakBadge[venue.hot_streak];
   
   // Handle both object vibe (expected) and string vibe (from external DB)
   const vibeData = typeof venue.vibe === 'string' 
     ? { sound_level: venue.vibe.toLowerCase() as keyof typeof soundLevelIcons, energy: 'lively' as const }
     : venue.vibe;
-  const soundLevel = soundLevelIcons[vibeData.sound_level] || soundLevelIcons.moderate;
+  const soundLevel = soundLevelIcons[vibeData?.sound_level] || soundLevelIcons.moderate;
   
   // Crowd count display logic - protect small venues
   const getCrowdDisplay = (count: number) => {
@@ -55,26 +90,43 @@ export function VenuePopup({ venue, onClose, onReact, onCheckIn, onChat, onNavig
     return `${count}+`;
   };
   
-  // Get venue location for check-in validation
+  // Calculate check-in eligibility without hooks
   const venueLocation = venue.latitude && venue.longitude 
     ? { latitude: venue.latitude, longitude: venue.longitude }
     : null;
   
-  // Use check-in hook for validation
-  const {
-    canCheckIn,
-    isLoading: isValidating,
-    isCheckingIn,
-    reason: checkInReason,
-    distance,
-    performCheckIn,
-    maxDistance,
-  } = useCheckIn(venue.id, venue.name, venueLocation);
+  let canCheckIn = false;
+  let checkInReason: string | null = null;
+  let distance: number | null = null;
+  
+  if (!venueLocation) {
+    checkInReason = 'Venue location unavailable';
+  } else if (!userCoords) {
+    checkInReason = 'Getting your location...';
+  } else if (!isAuthenticated) {
+    checkInReason = 'Sign in to check in';
+  } else {
+    distance = calculateDistance(
+      userCoords.lat,
+      userCoords.lng,
+      venueLocation.latitude,
+      venueLocation.longitude
+    );
+    
+    if (distance > MAX_GEOFENCE_DISTANCE) {
+      checkInReason = 'You need to be inside this location to check in';
+    } else {
+      canCheckIn = true;
+    }
+  }
   
   const handleCheckIn = async () => {
-    const result = await performCheckIn();
-    if (result.success) {
-      onCheckIn(); // Notify parent of successful check-in
+    if (!canCheckIn) return;
+    setIsCheckingIn(true);
+    try {
+      onCheckIn();
+    } finally {
+      setIsCheckingIn(false);
     }
   };
   
@@ -87,7 +139,7 @@ export function VenuePopup({ venue, onClose, onReact, onCheckIn, onChat, onNavig
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-foreground truncate">{venue.name}</h2>
           <p className="text-xs text-muted-foreground capitalize">
-            {venue.category.replace('_', ' ')}
+            {String(venue.category || '').replace('_', ' ')}
           </p>
         </div>
         <button
@@ -143,7 +195,7 @@ export function VenuePopup({ venue, onClose, onReact, onCheckIn, onChat, onNavig
             <Zap className="w-3 h-3 text-muted-foreground" />
             <span className="text-[10px] text-muted-foreground">Energy</span>
           </div>
-          <span className="text-xs font-medium">{energyLabels[vibeData.energy] || '🎉 Lively'}</span>
+          <span className="text-xs font-medium">{energyLabels[vibeData?.energy] || '🎉 Lively'}</span>
         </div>
       </div>
       
@@ -159,7 +211,7 @@ export function VenuePopup({ venue, onClose, onReact, onCheckIn, onChat, onNavig
             >
               <span className="text-base">{emoji}</span>
               <span className="text-[10px] text-muted-foreground">
-                {venue.reactions[type]}
+                {venue.reactions?.[type] ?? 0}
               </span>
             </button>
           ))}
@@ -167,14 +219,14 @@ export function VenuePopup({ venue, onClose, onReact, onCheckIn, onChat, onNavig
       </div>
       
       {/* Check-in validation message */}
-      {!canCheckIn && checkInReason && !isValidating && (
+      {!canCheckIn && checkInReason && (
         <div className="flex items-center gap-2 p-2 mb-3 bg-secondary/30 rounded-lg">
           <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
           <p className="text-xs text-muted-foreground">
             {checkInReason}
-            {distance !== null && distance > maxDistance && (
+            {distance !== null && distance > MAX_GEOFENCE_DISTANCE && (
               <span className="block text-[10px] mt-0.5">
-                You're {Math.round(distance)}m away (max {maxDistance}m)
+                You're {Math.round(distance)}m away (max {MAX_GEOFENCE_DISTANCE}m)
               </span>
             )}
           </p>
@@ -193,10 +245,10 @@ export function VenuePopup({ venue, onClose, onReact, onCheckIn, onChat, onNavig
               : "bg-secondary text-muted-foreground cursor-not-allowed"
           )}
         >
-          {isCheckingIn || isValidating ? (
+          {isCheckingIn ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              {isCheckingIn ? 'Checking In...' : 'Validating...'}
+              Checking In...
             </>
           ) : (
             'Check In'

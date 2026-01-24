@@ -6,6 +6,8 @@ import { Venue, ReactionType } from '@/types/venue';
 import { cn } from '@/lib/utils';
 import { VenuePopup } from './VenuePopup';
 import type { CategoryData } from '@/hooks/useExternalVenues';
+import { useAuth } from '@/hooks/useAuth';
+
 interface LeafletMapProps {
   venues: Venue[];
   categories?: CategoryData[];
@@ -194,6 +196,7 @@ const createUserIcon = () => {
 
 export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
   ({ venues, categories = [], selectedVenue, onVenueSelect, userLocation, onReact, onCheckIn, onChat, onNavigate }, ref) => {
+    const { user } = useAuth();
     const mapRef = useRef<L.Map | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<Map<string, L.Marker>>(new Map());
@@ -358,6 +361,8 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
           onCheckIn={onCheckIn}
           onChat={onChat}
           onNavigate={onNavigate}
+          userCoords={userLocation}
+          isAuthenticated={!!user}
         />
       );
 
