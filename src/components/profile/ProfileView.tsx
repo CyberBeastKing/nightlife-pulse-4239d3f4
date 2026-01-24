@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { ProfileHeader } from './ProfileHeader';
-import { NightlifeStats } from './NightlifeStats';
-import { StrikeStatus } from './StrikeStatus';
-import { SettingsSection } from './SettingsSection';
+import { IdentitySection } from './IdentitySection';
+import { LocationTransparencyPanel } from './LocationTransparencyPanel';
+import { LocationControlsSection } from './LocationControlsSection';
+import { PrivacySafetySection } from './PrivacySafetySection';
+import { PreferencesSection } from './PreferencesSection';
+import { DataTransparencySection } from './DataTransparencySection';
+import { CommunityStandingSection } from './CommunityStandingSection';
+import { SignOutButton } from './SignOutButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
@@ -13,20 +17,27 @@ export function ProfileView() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
 
+  // Location controls state
+  const [contributeLocation, setContributeLocation] = useState(true);
+  const [socialSharing, setSocialSharing] = useState<'friends' | 'family' | 'none'>('friends');
+  
+  // Privacy settings state
+  const [blockPlaceSuggestions, setBlockPlaceSuggestions] = useState(false);
+  const [hideFromJoinPrompts, setHideFromJoinPrompts] = useState(false);
+  const [muteVenueChats, setMuteVenueChats] = useState(false);
+  
+  // Preferences state
+  const [pushNotifications, setPushNotifications] = useState(true);
+  const [vibePreference, setVibePreference] = useState(50);
+
   if (loading) {
     return (
       <div className="h-full overflow-y-auto bg-background">
-        <div className="p-6 space-y-6">
-          <div className="flex items-center gap-4">
-            <Skeleton className="w-20 h-20 rounded-full" />
-            <div className="space-y-2">
-              <Skeleton className="h-6 w-32" />
-              <Skeleton className="h-4 w-24" />
-            </div>
-          </div>
-          <Skeleton className="h-32 w-full rounded-xl" />
-          <Skeleton className="h-24 w-full rounded-xl" />
-          <Skeleton className="h-48 w-full rounded-xl" />
+        <div className="p-6 space-y-4">
+          <Skeleton className="h-20 w-full rounded-2xl" />
+          <Skeleton className="h-40 w-full rounded-2xl" />
+          <Skeleton className="h-48 w-full rounded-2xl" />
+          <Skeleton className="h-32 w-full rounded-2xl" />
         </div>
       </div>
     );
@@ -39,7 +50,7 @@ export function ProfileView() {
           <span className="text-6xl block">🌙</span>
           <h2 className="text-2xl font-bold text-foreground">Join the Night</h2>
           <p className="text-muted-foreground max-w-xs">
-            Sign in to track your nightlife adventures, view your stats, and connect with venues
+            Sign in to access your control center, manage location settings, and customize your experience
           </p>
           <Button 
             onClick={() => navigate('/auth')} 
@@ -56,10 +67,52 @@ export function ProfileView() {
   return (
     <div className="h-full overflow-y-auto bg-background">
       <div className="p-6 pb-24 space-y-6">
-        <ProfileHeader profile={profile} />
-        <NightlifeStats userId={user.id} />
-        <StrikeStatus userId={user.id} />
-        <SettingsSection />
+        {/* Identity - Low Emphasis */}
+        <IdentitySection 
+          profile={profile} 
+          isLocationActive={contributeLocation}
+        />
+        
+        {/* Community Standing - Only shows if strikes/ban */}
+        <CommunityStandingSection userId={user.id} />
+        
+        {/* Location Transparency Panel - MOST IMPORTANT */}
+        <LocationTransparencyPanel 
+          isLocationContributing={contributeLocation}
+          isBackgroundActive={contributeLocation}
+        />
+        
+        {/* Location Controls */}
+        <LocationControlsSection
+          contributeLocation={contributeLocation}
+          setContributeLocation={setContributeLocation}
+          socialSharing={socialSharing}
+          setSocialSharing={setSocialSharing}
+        />
+        
+        {/* Privacy & Safety */}
+        <PrivacySafetySection
+          blockPlaceSuggestions={blockPlaceSuggestions}
+          setBlockPlaceSuggestions={setBlockPlaceSuggestions}
+          hideFromJoinPrompts={hideFromJoinPrompts}
+          setHideFromJoinPrompts={setHideFromJoinPrompts}
+          muteVenueChats={muteVenueChats}
+          setMuteVenueChats={setMuteVenueChats}
+        />
+        
+        {/* Preferences */}
+        <PreferencesSection
+          pushNotifications={pushNotifications}
+          setPushNotifications={setPushNotifications}
+          vibePreference={vibePreference}
+          setVibePreference={setVibePreference}
+        />
+        
+        {/* About Hawkly - Data Transparency */}
+        <DataTransparencySection />
+        
+        {/* Sign Out */}
+        <SignOutButton />
       </div>
     </div>
   );
