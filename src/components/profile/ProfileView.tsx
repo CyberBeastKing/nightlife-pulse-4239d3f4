@@ -19,7 +19,6 @@ export function ProfileView() {
 
   // Location controls state
   const [contributeLocation, setContributeLocation] = useState(true);
-  const [socialSharing, setSocialSharing] = useState<'friends' | 'family' | 'none'>('friends');
   
   // Privacy settings state
   const [blockPlaceSuggestions, setBlockPlaceSuggestions] = useState(false);
@@ -86,8 +85,6 @@ export function ProfileView() {
         <LocationControlsSection
           contributeLocation={contributeLocation}
           setContributeLocation={setContributeLocation}
-          socialSharing={socialSharing}
-          setSocialSharing={setSocialSharing}
         />
         
         {/* Privacy & Safety */}

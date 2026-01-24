@@ -58,6 +58,39 @@ export type Database = {
           },
         ]
       }
+      location_sharing: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          id: string
+          invite_token: string | null
+          recipient_id: string | null
+          recipient_phone: string | null
+          sharer_id: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          invite_token?: string | null
+          recipient_id?: string | null
+          recipient_phone?: string | null
+          sharer_id: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          invite_token?: string | null
+          recipient_id?: string | null
+          recipient_phone?: string | null
+          sharer_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       message_reports: {
         Row: {
           created_at: string

@@ -2,6 +2,8 @@ export { ProfileView } from './ProfileView';
 export { IdentitySection } from './IdentitySection';
 export { LocationTransparencyPanel } from './LocationTransparencyPanel';
 export { LocationControlsSection } from './LocationControlsSection';
+export { SocialSharingSection } from './SocialSharingSection';
+export { SharedUserItem } from './SharedUserItem';
 export { PrivacySafetySection } from './PrivacySafetySection';
 export { PreferencesSection } from './PreferencesSection';
 export { DataTransparencySection } from './DataTransparencySection';
