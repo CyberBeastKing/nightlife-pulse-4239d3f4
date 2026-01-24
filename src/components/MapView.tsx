@@ -36,7 +36,7 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
   }
 
   const filteredVenues = useMemo(() => {
-    return venues.filter((venue) => {
+    const filtered = venues.filter((venue) => {
       // Only show social places
       if (venue.place_type !== 'social') {
         return false;
@@ -65,7 +65,14 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
 
       return true;
     });
-  }, [venues, searchQuery, selectedCategories]);
+    
+    // ALWAYS include the selected venue in filtered results to ensure its marker appears
+    if (selectedVenue && !filtered.some(v => v.id === selectedVenue.id)) {
+      filtered.push(selectedVenue);
+    }
+    
+    return filtered;
+  }, [venues, searchQuery, selectedCategories, selectedVenue]);
 
   const handleReact = (type: ReactionType) => {
     console.log('Reacted with:', type);
@@ -90,15 +97,18 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
     }
   };
 
-  const handleVenueSelectFromSearch = (venue: Venue) => {
-    // Clear any category filters when searching to ensure the venue appears
-    // Then select the venue and fly to it
+  const handleVenueSelectFromSearch = useCallback((venue: Venue) => {
+    // Set the selected venue first - this ensures it appears in filteredVenues
     setSelectedVenue(venue);
-    // Small delay to allow map to update before flying
-    setTimeout(() => {
+    
+    // Clear the search to avoid filtering confusion, but keep venue selected
+    onSearchChange('');
+    
+    // Fly to the venue location after a brief delay to allow state updates
+    requestAnimationFrame(() => {
       mapRef.current?.flyTo(venue.latitude, venue.longitude, 17);
-    }, 100);
-  };
+    });
+  }, [onSearchChange]);
 
   return (
     <div className="relative w-full h-full">
