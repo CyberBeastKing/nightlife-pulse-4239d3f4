@@ -190,6 +190,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          block_place_suggestions: boolean
+          contribute_location: boolean
+          created_at: string
+          hide_from_join_prompts: boolean
+          id: string
+          mute_venue_chats: boolean
+          push_notifications: boolean
+          updated_at: string
+          user_id: string
+          vibe_preference: number
+        }
+        Insert: {
+          block_place_suggestions?: boolean
+          contribute_location?: boolean
+          created_at?: string
+          hide_from_join_prompts?: boolean
+          id?: string
+          mute_venue_chats?: boolean
+          push_notifications?: boolean
+          updated_at?: string
+          user_id: string
+          vibe_preference?: number
+        }
+        Update: {
+          block_place_suggestions?: boolean
+          contribute_location?: boolean
+          created_at?: string
+          hide_from_join_prompts?: boolean
+          id?: string
+          mute_venue_chats?: boolean
+          push_notifications?: boolean
+          updated_at?: string
+          user_id?: string
+          vibe_preference?: number
+        }
+        Relationships: []
+      }
       user_strikes: {
         Row: {
           created_at: string
