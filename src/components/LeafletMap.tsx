@@ -215,6 +215,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
     const userMarkerRef = useRef<L.Marker | null>(null);
     const popupRef = useRef<L.Popup | null>(null);
     const popupRootRef = useRef<Root | null>(null);
+    const isZoomingRef = useRef(false);
 
      // Map backend category UUIDs (and normalized labels) -> {color, emoji}
      const categoryStyleLookup = useMemo(() => {
@@ -308,8 +309,29 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
       map.addLayer(clusterGroup);
       clusterGroupRef.current = clusterGroup;
 
-      // Click on map to deselect
-      map.on('click', () => {
+      // Track zooming to avoid accidental deselect from zoom gestures (dblclick / double-tap)
+      map.on('zoomstart', () => {
+        isZoomingRef.current = true;
+      });
+      map.on('zoomend', () => {
+        isZoomingRef.current = false;
+      });
+
+      // Click on map to deselect (ignore clicks from controls and zoom gestures)
+      map.on('click', (e: L.LeafletMouseEvent) => {
+        const original = e.originalEvent as unknown as MouseEvent | PointerEvent | TouchEvent;
+        const target = (original as any)?.target as HTMLElement | null;
+
+        // Ignore clicks on Leaflet controls (zoom buttons, attribution, etc.)
+        if (target?.closest?.('.leaflet-control')) return;
+
+        // Ignore clicks while zoom animation/gesture is occurring
+        if (isZoomingRef.current) return;
+
+        // Ignore double-clicks (often used to zoom)
+        const detail = (original as any)?.detail;
+        if (typeof detail === 'number' && detail > 1) return;
+
         onVenueSelect(null);
       });
 
