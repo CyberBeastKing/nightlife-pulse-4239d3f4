@@ -356,8 +356,8 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
         }
       });
 
-      // Add or update markers
-      venues.forEach(venue => {
+      // Helper to create or update a marker
+      const upsertMarker = (venue: Venue) => {
         const isSelected = selectedVenue?.id === venue.id;
         const existingMarker = markersRef.current.get(venue.id);
 
@@ -382,7 +382,15 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
           clusterGroup.addLayer(marker);
           markersRef.current.set(venue.id, marker);
         }
-      });
+      };
+
+      // Add or update markers for all venues in the list
+      venues.forEach(upsertMarker);
+      
+      // CRITICAL: Ensure selected venue always has a marker, even if not in venues array
+      if (selectedVenue && !currentVenueIds.has(selectedVenue.id)) {
+        upsertMarker(selectedVenue);
+      }
     }, [venues, selectedVenue, onVenueSelect, categoryStyleLookup]);
 
     // Handle popup for selected venue
