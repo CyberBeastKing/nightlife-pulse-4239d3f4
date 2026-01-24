@@ -13,6 +13,15 @@ serve(async (req) => {
   }
 
   try {
+    // Parse bounding box from query params for viewport-based loading
+    const url = new URL(req.url);
+    const minLat = parseFloat(url.searchParams.get('minLat') || '');
+    const maxLat = parseFloat(url.searchParams.get('maxLat') || '');
+    const minLng = parseFloat(url.searchParams.get('minLng') || '');
+    const maxLng = parseFloat(url.searchParams.get('maxLng') || '');
+    
+    const hasBounds = !isNaN(minLat) && !isNaN(maxLat) && !isNaN(minLng) && !isNaN(maxLng);
+    
     const externalSupabaseUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
     const externalSupabaseKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');
 
@@ -22,10 +31,6 @@ serve(async (req) => {
 
     const externalSupabase = createClient(externalSupabaseUrl, externalSupabaseKey);
 
-    // Use PostGIS to extract lat/lng from the location column via RPC or a computed column
-    // Since the location is stored as WKB, we need to use ST_X and ST_Y to extract coordinates
-    // We'll call an RPC function or use a view - for now, let's try fetching with a raw query
-    
     // Fetch categories first (table is named 'categories' plural)
     const { data: rawCategories, error: catError } = await externalSupabase
       .from('categories')
@@ -35,44 +40,60 @@ serve(async (req) => {
       console.error('Error fetching categories:', catError);
     }
 
-    // Fetch all 'social' places from the new Overture Maps table with pagination
-    // Supabase has a 1000 row default limit, so we paginate to get all venues
-    const PAGE_SIZE = 1000;
+    // Fetch 'social' places with optional viewport filtering
     let allPlaces: any[] = [];
-    let page = 0;
-    let hasMore = true;
     
-    while (hasMore) {
-      const { data: pageData, error: pageError } = await externalSupabase
+    if (hasBounds) {
+      // Viewport-based query - filter by bounding box
+      // Add padding to bounds for smoother panning
+      const latPadding = (maxLat - minLat) * 0.2;
+      const lngPadding = (maxLng - minLng) * 0.2;
+      
+      const { data: boundedData, error: boundedError } = await externalSupabase
         .from('places_overture')
         .select('*, category:category_id(id, name)')
         .eq('place_type', 'social')
-        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+        .gte('latitude', minLat - latPadding)
+        .lte('latitude', maxLat + latPadding)
+        .gte('longitude', minLng - lngPadding)
+        .lte('longitude', maxLng + lngPadding)
+        .limit(2000); // Cap per-viewport to prevent overload
       
-      if (pageError) {
-        console.error('Error fetching places page:', page, pageError);
-        throw pageError;
+      if (boundedError) {
+        console.error('Error fetching bounded places:', boundedError);
+        throw boundedError;
       }
       
-      if (pageData && pageData.length > 0) {
-        allPlaces = allPlaces.concat(pageData);
-        page++;
-        hasMore = pageData.length === PAGE_SIZE;
-      } else {
-        hasMore = false;
+      allPlaces = boundedData || [];
+      console.log(`Viewport query: ${allPlaces.length} venues in bounds [${minLat.toFixed(2)},${maxLat.toFixed(2)}] x [${minLng.toFixed(2)},${maxLng.toFixed(2)}]`);
+    } else {
+      // Full fetch with pagination (initial load or fallback)
+      const PAGE_SIZE = 1000;
+      let page = 0;
+      let hasMore = true;
+      
+      while (hasMore) {
+        const { data: pageData, error: pageError } = await externalSupabase
+          .from('places_overture')
+          .select('*, category:category_id(id, name)')
+          .eq('place_type', 'social')
+          .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+        
+        if (pageError) {
+          console.error('Error fetching places page:', page, pageError);
+          throw pageError;
+        }
+        
+        if (pageData && pageData.length > 0) {
+          allPlaces = allPlaces.concat(pageData);
+          page++;
+          hasMore = pageData.length === PAGE_SIZE;
+        } else {
+          hasMore = false;
+        }
       }
-    }
-    
-    console.log('Fetched total places:', allPlaces.length);
-    
-    // Debug: log first place to see column structure
-    if (allPlaces.length > 0) {
-      const sample = allPlaces[0];
-      console.log('Sample place keys:', Object.keys(sample));
-      console.log('Sample geog:', sample.geog);
-      console.log('Sample location:', sample.location);
-      console.log('Sample latitude:', sample.latitude);
-      console.log('Sample longitude:', sample.longitude);
+      
+      console.log('Full fetch - total places:', allPlaces.length);
     }
     
     const rawPlaces = allPlaces;

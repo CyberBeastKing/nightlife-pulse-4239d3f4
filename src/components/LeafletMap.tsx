@@ -8,6 +8,13 @@ import { VenuePopup } from './VenuePopup';
 import type { CategoryData } from '@/hooks/useExternalVenues';
 import { useAuth } from '@/hooks/useAuth';
 
+export interface MapBounds {
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+}
+
 interface LeafletMapProps {
   venues: Venue[];
   categories?: CategoryData[];
@@ -18,6 +25,7 @@ interface LeafletMapProps {
   onCheckIn: () => void;
   onChat: () => void;
   onNavigate: () => void;
+  onBoundsChange?: (bounds: MapBounds) => void;
 }
 
 export interface LeafletMapRef {
@@ -195,7 +203,7 @@ const createUserIcon = () => {
 };
 
 export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
-  ({ venues, categories = [], selectedVenue, onVenueSelect, userLocation, onReact, onCheckIn, onChat, onNavigate }, ref) => {
+  ({ venues, categories = [], selectedVenue, onVenueSelect, userLocation, onReact, onCheckIn, onChat, onNavigate, onBoundsChange }, ref) => {
     const { user } = useAuth();
     const mapRef = useRef<L.Map | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -225,6 +233,18 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
         }
       },
     }));
+
+    // Helper to emit bounds
+    const emitBounds = (map: L.Map) => {
+      if (!onBoundsChange) return;
+      const b = map.getBounds();
+      onBoundsChange({
+        minLat: b.getSouth(),
+        maxLat: b.getNorth(),
+        minLng: b.getWest(),
+        maxLng: b.getEast(),
+      });
+    };
 
     // Initialize map
     useEffect(() => {
@@ -257,6 +277,13 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
       map.on('click', () => {
         onVenueSelect(null);
       });
+
+      // Emit bounds on map move/zoom
+      map.on('moveend', () => emitBounds(map));
+      map.on('zoomend', () => emitBounds(map));
+
+      // Emit initial bounds
+      setTimeout(() => emitBounds(map), 100);
 
       return () => {
         map.remove();
