@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Venue, ReactionType } from '@/types/venue';
 import { VenuePopup } from './VenuePopup';
 import { cn } from '@/lib/utils';
-import type { LeafletMapRef } from './LeafletMap';
 
 interface VenueOverlayProps {
   venue: Venue | null;
@@ -14,7 +13,6 @@ interface VenueOverlayProps {
   onNavigate: () => void;
   userCoords?: { lat: number; lng: number } | null;
   isAuthenticated: boolean;
-  mapRef?: React.RefObject<LeafletMapRef | null>;
 }
 
 export function VenueOverlay({
@@ -30,7 +28,6 @@ export function VenueOverlay({
 }: VenueOverlayProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
-  const [showArrow, setShowArrow] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   // Handle open/close transitions
@@ -38,13 +35,9 @@ export function VenueOverlay({
     if (isOpen && venue) {
       setIsVisible(true);
       setIsAnimatingOut(false);
-      // Delay arrow appearance for staggered animation
-      const arrowTimer = setTimeout(() => setShowArrow(true), 300);
-      return () => clearTimeout(arrowTimer);
     } else if (!isOpen && isVisible) {
       // Start close animation
       setIsAnimatingOut(true);
-      setShowArrow(false);
       const timer = setTimeout(() => {
         setIsVisible(false);
         setIsAnimatingOut(false);
@@ -91,40 +84,6 @@ export function VenueOverlay({
             userCoords={userCoords}
             isAuthenticated={isAuthenticated}
           />
-        </div>
-
-        {/* Animated Arrow pointing down to marker */}
-        <div 
-          className={cn(
-            "absolute left-1/2 -translate-x-1/2 -bottom-16 flex flex-col items-center",
-            "transition-all duration-300",
-            showArrow && !isAnimatingOut
-              ? "opacity-100 translate-y-0" 
-              : "opacity-0 -translate-y-4"
-          )}
-        >
-          {/* Pulsing glow effect */}
-          <div className="relative">
-            <div className="absolute inset-0 animate-ping">
-              <svg 
-                className="w-8 h-8 text-primary/50" 
-                viewBox="0 0 24 24" 
-                fill="currentColor"
-              >
-                <path d="M12 16l-6-6h12l-6 6z" />
-              </svg>
-            </div>
-            <svg 
-              className="w-8 h-8 text-primary animate-bounce" 
-              viewBox="0 0 24 24" 
-              fill="currentColor"
-            >
-              <path d="M12 16l-6-6h12l-6 6z" />
-            </svg>
-          </div>
-          
-          {/* Connecting line */}
-          <div className="w-0.5 h-8 bg-gradient-to-b from-primary to-transparent" />
         </div>
       </div>
     </div>

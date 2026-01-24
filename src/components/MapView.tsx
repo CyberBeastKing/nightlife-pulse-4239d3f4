@@ -169,7 +169,6 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         onNavigate={handleNavigate}
         userCoords={userLocation}
         isAuthenticated={!!user}
-        mapRef={mapRef}
       />
     </div>
   );

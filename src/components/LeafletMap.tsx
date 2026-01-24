@@ -206,6 +206,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
     const markersRef = useRef<Map<string, L.Marker>>(new Map());
     const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
     const userMarkerRef = useRef<L.Marker | null>(null);
+    const highlightCircleRef = useRef<L.Circle | null>(null);
     const isZoomingRef = useRef(false);
 
      // Map backend category UUIDs (and normalized labels) -> {color, emoji}
@@ -411,6 +412,42 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
       }
     }, [venues, selectedVenue, onVenueSelect, categoryStyleLookup]);
 
+    // Add pulsing highlight circle around selected venue
+    useEffect(() => {
+      if (!mapRef.current) return;
+
+      // Remove existing highlight circle
+      if (highlightCircleRef.current) {
+        highlightCircleRef.current.remove();
+        highlightCircleRef.current = null;
+      }
+
+      // Add new highlight circle if venue is selected
+      if (selectedVenue) {
+        const circle = L.circle(
+          [selectedVenue.latitude, selectedVenue.longitude],
+          {
+            radius: 40, // 40 meters
+            fillColor: '#8B5CF6',
+            fillOpacity: 0.25,
+            color: '#8B5CF6',
+            weight: 2,
+            opacity: 0.6,
+            className: 'venue-highlight-circle'
+          }
+        ).addTo(mapRef.current);
+
+        highlightCircleRef.current = circle;
+      }
+
+      return () => {
+        if (highlightCircleRef.current) {
+          highlightCircleRef.current.remove();
+          highlightCircleRef.current = null;
+        }
+      };
+    }, [venues, selectedVenue, onVenueSelect, categoryStyleLookup]);
+
     // Handle recenter
     const handleRecenter = () => {
       if (!mapRef.current) return;
@@ -538,6 +575,22 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
           
           .leaflet-marker-icon.marker-cluster-custom {
             background: transparent !important;
+          }
+
+          /* Venue highlight circle pulsing animation */
+          .venue-highlight-circle {
+            animation: pulseCircle 2s ease-in-out infinite;
+          }
+          
+          @keyframes pulseCircle {
+            0%, 100% { 
+              opacity: 0.6;
+              stroke-width: 2;
+            }
+            50% { 
+              opacity: 1;
+              stroke-width: 3;
+            }
           }
         `}</style>
       </div>
