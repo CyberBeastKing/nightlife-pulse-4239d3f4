@@ -1,5 +1,9 @@
 export { ProfileView } from './ProfileView';
-export { ProfileHeader } from './ProfileHeader';
-export { NightlifeStats } from './NightlifeStats';
-export { StrikeStatus } from './StrikeStatus';
-export { SettingsSection } from './SettingsSection';
+export { IdentitySection } from './IdentitySection';
+export { LocationTransparencyPanel } from './LocationTransparencyPanel';
+export { LocationControlsSection } from './LocationControlsSection';
+export { PrivacySafetySection } from './PrivacySafetySection';
+export { PreferencesSection } from './PreferencesSection';
+export { DataTransparencySection } from './DataTransparencySection';
+export { CommunityStandingSection } from './CommunityStandingSection';
+export { SignOutButton } from './SignOutButton';
