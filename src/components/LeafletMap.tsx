@@ -348,9 +348,9 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
       const clusterGroup = clusterGroupRef.current;
       const currentVenueIds = new Set(venues.map(v => v.id));
 
-      // Remove markers that are no longer in venues
+      // Remove markers that are no longer in venues (but keep selected venue marker)
       markersRef.current.forEach((marker, id) => {
-        if (!currentVenueIds.has(id)) {
+        if (!currentVenueIds.has(id) && selectedVenue?.id !== id) {
           clusterGroup.removeLayer(marker);
           markersRef.current.delete(id);
         }
@@ -362,8 +362,14 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
         const existingMarker = markersRef.current.get(venue.id);
 
         if (existingMarker) {
-          // Update existing marker icon
+          // Update existing marker icon and ensure it's in the cluster group
           existingMarker.setIcon(createVenueIcon(venue, isSelected, categoryStyleLookup));
+          existingMarker.setLatLng([venue.latitude, venue.longitude]);
+          
+          // Ensure marker is visible in cluster group
+          if (!clusterGroup.hasLayer(existingMarker)) {
+            clusterGroup.addLayer(existingMarker);
+          }
         } else {
           // Create new marker and add to cluster group
           const marker = L.marker([venue.latitude, venue.longitude], {
