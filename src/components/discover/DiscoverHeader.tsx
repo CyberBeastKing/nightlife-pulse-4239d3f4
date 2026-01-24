@@ -1,10 +1,9 @@
-import { Bell, SlidersHorizontal, MapPin, TrendingUp, Users, Flame } from 'lucide-react';
+import { Bell, SlidersHorizontal, MapPin, TrendingUp, Flame } from 'lucide-react';
 
 interface DiscoverHeaderProps {
   onSearchClick: () => void;
   onFilterClick?: () => void;
   trendingCount?: number;
-  activeUsers?: number;
   hottestSpot?: string;
   location?: string;
 }
@@ -13,7 +12,6 @@ export function DiscoverHeader({
   onSearchClick, 
   onFilterClick,
   trendingCount = 4,
-  activeUsers = 56,
   hottestSpot = "Leo's Italian Social",
   location = "Akron, OH"
 }: DiscoverHeaderProps) {
@@ -55,8 +53,8 @@ export function DiscoverHeader({
           <span>{location}</span>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-3">
+        {/* Stats Cards - 2 columns now (Active metric hidden until real data) */}
+        <div className="grid grid-cols-2 gap-3">
           {/* Trending Now Card */}
           <div className="rounded-xl p-3 bg-primary/15 border border-primary/30">
             <div className="flex items-center gap-1.5 mb-1">
@@ -66,15 +64,6 @@ export function DiscoverHeader({
             <p className="text-lg font-bold text-foreground">{trendingCount} Places</p>
           </div>
 
-          {/* Active Users Card */}
-          <div className="rounded-xl p-3 bg-accent/15 border border-accent/30">
-            <div className="flex items-center gap-1.5 mb-1">
-              <Users className="w-3.5 h-3.5 text-accent" />
-              <span className="text-xs text-accent/80">Active</span>
-            </div>
-            <p className="text-lg font-bold text-foreground">{activeUsers}</p>
-          </div>
-
           {/* Hottest Spot Card */}
           <div className="rounded-xl p-3 bg-destructive/15 border border-destructive/30">
             <div className="flex items-center gap-1.5 mb-1">
@@ -82,7 +71,7 @@ export function DiscoverHeader({
               <span className="text-xs text-destructive/80">Hottest</span>
             </div>
             <p className="text-xs font-bold text-foreground truncate" title={hottestSpot}>
-              {hottestSpot.length > 14 ? `${hottestSpot.slice(0, 14)}...` : hottestSpot}
+              {hottestSpot.length > 18 ? `${hottestSpot.slice(0, 18)}...` : hottestSpot}
             </p>
           </div>
         </div>

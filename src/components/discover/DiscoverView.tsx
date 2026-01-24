@@ -36,7 +36,6 @@ export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
   const hotStreakOrder = ['hottest_spot', 'on_fire', 'popping_off', 'rising_star'];
   const trendingVenues = venues.filter(v => hotStreakOrder.includes(v.hot_streak));
   const trendingCount = trendingVenues.length || 4;
-  const activeUsers = venues.reduce((sum, v) => sum + (v.current_crowd_count || 0), 0);
   const hottestSpot = trendingVenues.length > 0 
     ? trendingVenues[0].name 
     : venues[0]?.name || "Leo's Italian Social";
@@ -92,7 +91,6 @@ export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
         onSearchClick={handleSearchClick} 
         onFilterClick={handleFilterClick}
         trendingCount={trendingCount}
-        activeUsers={activeUsers}
         hottestSpot={hottestSpot}
         location={locationLoading ? 'Locating...' : locationName}
       />
