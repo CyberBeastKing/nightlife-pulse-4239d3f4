@@ -20,6 +20,7 @@ interface LeafletMapProps {
   categories?: CategoryData[];
   selectedVenue: Venue | null;
   onVenueSelect: (venue: Venue | null) => void;
+  onDeselect?: () => void;
   userLocation?: { lat: number; lng: number };
   onBoundsChange?: (bounds: MapBounds) => void;
 }
@@ -199,7 +200,7 @@ const createUserIcon = () => {
 };
 
 export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
-  ({ venues, categories = [], selectedVenue, onVenueSelect, userLocation, onBoundsChange }, ref) => {
+  ({ venues, categories = [], selectedVenue, onVenueSelect, onDeselect, userLocation, onBoundsChange }, ref) => {
     const mapRef = useRef<L.Map | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<Map<string, L.Marker>>(new Map());
@@ -322,7 +323,12 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
         const detail = (original as any)?.detail;
         if (typeof detail === 'number' && detail > 1) return;
 
-        onVenueSelect(null);
+        // Use onDeselect if provided (full deselection), otherwise onVenueSelect(null)
+        if (onDeselect) {
+          onDeselect();
+        } else {
+          onVenueSelect(null);
+        }
       });
 
       // Emit bounds on map move/zoom
