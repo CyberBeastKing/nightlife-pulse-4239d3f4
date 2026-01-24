@@ -9,6 +9,8 @@ import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useAuth } from '@/hooks/useAuth';
+import { useExternalVenues } from '@/hooks/useExternalVenues';
+import { useAutoCheckIn } from '@/hooks/useAutoCheckIn';
 import { Venue } from '@/types/venue';
 
 const Index = () => {
@@ -16,6 +18,10 @@ const Index = () => {
   const { hasCompletedOnboarding, completeOnboarding } = useOnboarding();
   const { user } = useAuth();
   const { updateSetting } = useUserSettings();
+  const { data: venueData } = useExternalVenues();
+  
+  // Initialize automatic check-in detection
+  useAutoCheckIn(venueData?.venues ?? []);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());

@@ -240,6 +240,7 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          auto_checkin_enabled: boolean
           block_place_suggestions: boolean
           contribute_location: boolean
           created_at: string
@@ -252,6 +253,7 @@ export type Database = {
           vibe_preference: number
         }
         Insert: {
+          auto_checkin_enabled?: boolean
           block_place_suggestions?: boolean
           contribute_location?: boolean
           created_at?: string
@@ -264,6 +266,7 @@ export type Database = {
           vibe_preference?: number
         }
         Update: {
+          auto_checkin_enabled?: boolean
           block_place_suggestions?: boolean
           contribute_location?: boolean
           created_at?: string
@@ -437,6 +440,7 @@ export type Database = {
         Args: { issue_strike?: boolean; report_id: string }
         Returns: undefined
       }
+      undo_checkin: { Args: { p_checkin_id: string }; Returns: Json }
       validate_and_create_checkin: {
         Args: {
           p_is_automatic?: boolean

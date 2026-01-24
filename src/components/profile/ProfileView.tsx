@@ -76,6 +76,8 @@ export function ProfileView() {
         <LocationControlsSection
           contributeLocation={settings.contributeLocation}
           setContributeLocation={(value) => updateSetting('contributeLocation', value)}
+          autoCheckinEnabled={settings.autoCheckinEnabled}
+          setAutoCheckinEnabled={(value) => updateSetting('autoCheckinEnabled', value)}
         />
         
         {/* Privacy & Safety */}
