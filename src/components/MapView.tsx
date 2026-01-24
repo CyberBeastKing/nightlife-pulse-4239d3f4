@@ -18,6 +18,7 @@ interface MapViewProps {
 
 export function MapView({ searchQuery, selectedCategories, onSearchChange, onCategoryToggle, onOpenVenueChat }: MapViewProps) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const mapRef = useRef<LeafletMapRef>(null);
   const { user } = useAuth();
   
@@ -103,6 +104,7 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
   const handleVenueSelectFromSearch = useCallback((venue: Venue) => {
     // Set the selected venue first - this ensures it appears in filteredVenues
     setSelectedVenue(venue);
+    setIsPopupOpen(true);
     
     // Clear the search to avoid filtering confusion, but keep venue selected
     onSearchChange('');
@@ -113,8 +115,22 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
     });
   }, [onSearchChange]);
 
+  // Handle venue selection from map marker click
+  const handleVenueSelectFromMap = useCallback((venue: Venue | null) => {
+    setSelectedVenue(venue);
+    setIsPopupOpen(venue !== null);
+  }, []);
+
+  // Close popup but keep marker visible and map focused
   const handleCloseOverlay = useCallback(() => {
+    setIsPopupOpen(false);
+    // Keep selectedVenue set so marker stays visible
+  }, []);
+
+  // Deselect venue completely (when clicking empty map area)
+  const handleDeselectVenue = useCallback(() => {
     setSelectedVenue(null);
+    setIsPopupOpen(false);
   }, []);
 
   return (
@@ -136,7 +152,8 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         venues={filteredVenues}
         categories={categories}
         selectedVenue={selectedVenue}
-        onVenueSelect={setSelectedVenue}
+        onVenueSelect={handleVenueSelectFromMap}
+        onDeselect={handleDeselectVenue}
         userLocation={userLocation || undefined}
         onBoundsChange={handleBoundsChange}
       />
@@ -144,6 +161,7 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
       {/* React-controlled venue overlay (replaces Leaflet popup) */}
       <VenueOverlay
         venue={selectedVenue}
+        isOpen={isPopupOpen}
         onClose={handleCloseOverlay}
         onReact={handleReact}
         onCheckIn={handleCheckIn}
@@ -151,6 +169,7 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         onNavigate={handleNavigate}
         userCoords={userLocation}
         isAuthenticated={!!user}
+        mapRef={mapRef}
       />
     </div>
   );
