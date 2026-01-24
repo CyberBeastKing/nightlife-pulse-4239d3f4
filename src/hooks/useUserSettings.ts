@@ -10,6 +10,7 @@ export interface UserSettings {
   muteVenueChats: boolean;
   pushNotifications: boolean;
   vibePreference: number;
+  autoCheckinEnabled: boolean;
 }
 
 const defaultSettings: UserSettings = {
@@ -19,6 +20,7 @@ const defaultSettings: UserSettings = {
   muteVenueChats: false,
   pushNotifications: true,
   vibePreference: 50,
+  autoCheckinEnabled: true,
 };
 
 interface UseUserSettingsReturn {
@@ -66,6 +68,7 @@ export function useUserSettings(): UseUserSettingsReturn {
               muteVenueChats: newSettings.mute_venue_chats,
               pushNotifications: newSettings.push_notifications,
               vibePreference: newSettings.vibe_preference,
+              autoCheckinEnabled: newSettings.auto_checkin_enabled,
             });
           }
         } else {
@@ -79,6 +82,7 @@ export function useUserSettings(): UseUserSettingsReturn {
           muteVenueChats: data.mute_venue_chats,
           pushNotifications: data.push_notifications,
           vibePreference: data.vibe_preference,
+          autoCheckinEnabled: data.auto_checkin_enabled,
         });
       }
     } catch (error) {
@@ -109,6 +113,7 @@ export function useUserSettings(): UseUserSettingsReturn {
       muteVenueChats: 'mute_venue_chats',
       pushNotifications: 'push_notifications',
       vibePreference: 'vibe_preference',
+      autoCheckinEnabled: 'auto_checkin_enabled',
     };
 
     try {
