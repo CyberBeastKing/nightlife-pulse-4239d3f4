@@ -1,16 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MapView } from '@/components/MapView';
 import { BottomNav } from '@/components/BottomNav';
 import { DiscoverView } from '@/components/discover/DiscoverView';
 import { ChatView } from '@/components/chat/ChatView';
 import { ProfileView } from '@/components/profile/ProfileView';
+import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
+import { useOnboarding } from '@/hooks/useOnboarding';
+import { useUserSettings } from '@/hooks/useUserSettings';
+import { useAuth } from '@/hooks/useAuth';
 import { Venue } from '@/types/venue';
 
 const Index = () => {
+  const [searchParams] = useSearchParams();
+  const { hasCompletedOnboarding, completeOnboarding } = useOnboarding();
+  const { user } = useAuth();
+  const { updateSetting } = useUserSettings();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<'map' | 'discover' | 'chat' | 'profile'>('map');
   const [chatVenue, setChatVenue] = useState<Venue | null>(null);
+
+  // Handle tab param from URL (e.g., after accepting invite)
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['map', 'discover', 'chat', 'profile'].includes(tabParam)) {
+      setActiveTab(tabParam as 'map' | 'discover' | 'chat' | 'profile');
+    }
+  }, [searchParams]);
+
+  const handleOnboardingComplete = async (fullLocation: boolean) => {
+    completeOnboarding(fullLocation);
+    
+    // If user is logged in, also save to their settings
+    if (user) {
+      await updateSetting('contributeLocation', fullLocation);
+    }
+  };
 
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories(prev => {
@@ -47,6 +74,11 @@ const Index = () => {
     }
     setActiveTab(tab);
   };
+
+  // Show onboarding for first-time users
+  if (!hasCompletedOnboarding) {
+    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background">
