@@ -35,10 +35,10 @@ serve(async (req) => {
       console.error('Error fetching categories:', catError);
     }
 
-    // Fetch only 'social' places - these are genuine nightlife venues
+    // Fetch only 'social' places from the new Overture Maps table
     // 'exclude' and 'utility' place types are filtered out server-side for performance
     const { data: rawPlaces, error: rawError } = await externalSupabase
-      .from('places')
+      .from('places_overture')
       .select('*, category:category_id(id, name)')
       .eq('place_type', 'social');
       
