@@ -1,6 +1,7 @@
 import { Venue, ReactionType } from '@/types/venue';
-import { X, Users, Volume2, Zap, Navigation, MessageCircle } from 'lucide-react';
+import { X, Users, Volume2, Zap, Navigation, MessageCircle, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCheckIn } from '@/hooks/useCheckIn';
 
 interface VenuePopupProps {
   venue: Venue;
@@ -53,6 +54,31 @@ export function VenuePopup({ venue, onClose, onReact, onCheckIn, onChat, onNavig
     if (count < 5) return '0+';
     return `${count}+`;
   };
+  
+  // Get venue location for check-in validation
+  const venueLocation = venue.latitude && venue.longitude 
+    ? { latitude: venue.latitude, longitude: venue.longitude }
+    : null;
+  
+  // Use check-in hook for validation
+  const {
+    canCheckIn,
+    isLoading: isValidating,
+    isCheckingIn,
+    reason: checkInReason,
+    distance,
+    performCheckIn,
+    maxDistance,
+  } = useCheckIn(venue.id, venue.name, venueLocation);
+  
+  const handleCheckIn = async () => {
+    const result = await performCheckIn();
+    if (result.success) {
+      onCheckIn(); // Notify parent of successful check-in
+    }
+  };
+  
+  const isCheckInDisabled = !canCheckIn || isCheckingIn;
   
   return (
     <div className="w-[280px]">
@@ -140,13 +166,41 @@ export function VenuePopup({ venue, onClose, onReact, onCheckIn, onChat, onNavig
         </div>
       </div>
       
+      {/* Check-in validation message */}
+      {!canCheckIn && checkInReason && !isValidating && (
+        <div className="flex items-center gap-2 p-2 mb-3 bg-secondary/30 rounded-lg">
+          <MapPin className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            {checkInReason}
+            {distance !== null && distance > maxDistance && (
+              <span className="block text-[10px] mt-0.5">
+                You're {Math.round(distance)}m away (max {maxDistance}m)
+              </span>
+            )}
+          </p>
+        </div>
+      )}
+      
       {/* Actions */}
       <div className="flex gap-2">
         <button
-          onClick={onCheckIn}
-          className="flex-1 bg-primary text-primary-foreground py-2 px-3 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+          onClick={handleCheckIn}
+          disabled={isCheckInDisabled}
+          className={cn(
+            "flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2",
+            canCheckIn
+              ? "bg-primary text-primary-foreground hover:opacity-90"
+              : "bg-secondary text-muted-foreground cursor-not-allowed"
+          )}
         >
-          Check In
+          {isCheckingIn || isValidating ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              {isCheckingIn ? 'Checking In...' : 'Validating...'}
+            </>
+          ) : (
+            'Check In'
+          )}
         </button>
         <button
           onClick={onChat}

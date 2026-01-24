@@ -58,6 +58,54 @@ export type Database = {
           },
         ]
       }
+      check_ins: {
+        Row: {
+          checked_in_at: string
+          confidence_score: number | null
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          is_automatic: boolean
+          latitude: number
+          location_accuracy: number | null
+          longitude: number
+          user_id: string
+          venue_id: string
+          venue_name: string
+        }
+        Insert: {
+          checked_in_at?: string
+          confidence_score?: number | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          is_automatic?: boolean
+          latitude: number
+          location_accuracy?: number | null
+          longitude: number
+          user_id: string
+          venue_id: string
+          venue_name: string
+        }
+        Update: {
+          checked_in_at?: string
+          confidence_score?: number | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          is_automatic?: boolean
+          latitude?: number
+          location_accuracy?: number | null
+          longitude?: number
+          user_id?: string
+          venue_id?: string
+          venue_name?: string
+        }
+        Relationships: []
+      }
       location_sharing: {
         Row: {
           accepted_at: string | null
@@ -367,10 +415,18 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_distance_meters: {
+        Args: { lat1: number; lat2: number; lon1: number; lon2: number }
+        Returns: number
+      }
       cleanup_expired_messages: { Args: never; Returns: undefined }
       get_user_strike_count: {
         Args: { target_user_id: string }
         Returns: number
+      }
+      has_recent_checkin: {
+        Args: { cooldown_minutes?: number; target_user_id: string }
+        Returns: boolean
       }
       is_over_21: { Args: { dob: string }; Returns: boolean }
       is_user_chat_banned: {
@@ -380,6 +436,19 @@ export type Database = {
       process_report_and_issue_strike: {
         Args: { issue_strike?: boolean; report_id: string }
         Returns: undefined
+      }
+      validate_and_create_checkin: {
+        Args: {
+          p_is_automatic?: boolean
+          p_location_accuracy?: number
+          p_user_lat: number
+          p_user_lon: number
+          p_venue_id: string
+          p_venue_lat: number
+          p_venue_lon: number
+          p_venue_name: string
+        }
+        Returns: Json
       }
     }
     Enums: {
