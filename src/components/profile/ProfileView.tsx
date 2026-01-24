@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserSettings } from '@/hooks/useUserSettings';
 import { IdentitySection } from './IdentitySection';
 import { LocationTransparencyPanel } from './LocationTransparencyPanel';
 import { LocationControlsSection } from './LocationControlsSection';
@@ -14,20 +14,11 @@ import { LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function ProfileView() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
+  const { settings, loading: settingsLoading, updateSetting } = useUserSettings();
   const navigate = useNavigate();
 
-  // Location controls state
-  const [contributeLocation, setContributeLocation] = useState(true);
-  
-  // Privacy settings state
-  const [blockPlaceSuggestions, setBlockPlaceSuggestions] = useState(false);
-  const [hideFromJoinPrompts, setHideFromJoinPrompts] = useState(false);
-  const [muteVenueChats, setMuteVenueChats] = useState(false);
-  
-  // Preferences state
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [vibePreference, setVibePreference] = useState(50);
+  const loading = authLoading || settingsLoading;
 
   if (loading) {
     return (
@@ -69,7 +60,7 @@ export function ProfileView() {
         {/* Identity - Low Emphasis */}
         <IdentitySection 
           profile={profile} 
-          isLocationActive={contributeLocation}
+          isLocationActive={settings.contributeLocation}
         />
         
         {/* Community Standing - Only shows if strikes/ban */}
@@ -77,32 +68,32 @@ export function ProfileView() {
         
         {/* Location Transparency Panel - MOST IMPORTANT */}
         <LocationTransparencyPanel 
-          isLocationContributing={contributeLocation}
-          isBackgroundActive={contributeLocation}
+          isLocationContributing={settings.contributeLocation}
+          isBackgroundActive={settings.contributeLocation}
         />
         
         {/* Location Controls */}
         <LocationControlsSection
-          contributeLocation={contributeLocation}
-          setContributeLocation={setContributeLocation}
+          contributeLocation={settings.contributeLocation}
+          setContributeLocation={(value) => updateSetting('contributeLocation', value)}
         />
         
         {/* Privacy & Safety */}
         <PrivacySafetySection
-          blockPlaceSuggestions={blockPlaceSuggestions}
-          setBlockPlaceSuggestions={setBlockPlaceSuggestions}
-          hideFromJoinPrompts={hideFromJoinPrompts}
-          setHideFromJoinPrompts={setHideFromJoinPrompts}
-          muteVenueChats={muteVenueChats}
-          setMuteVenueChats={setMuteVenueChats}
+          blockPlaceSuggestions={settings.blockPlaceSuggestions}
+          setBlockPlaceSuggestions={(value) => updateSetting('blockPlaceSuggestions', value)}
+          hideFromJoinPrompts={settings.hideFromJoinPrompts}
+          setHideFromJoinPrompts={(value) => updateSetting('hideFromJoinPrompts', value)}
+          muteVenueChats={settings.muteVenueChats}
+          setMuteVenueChats={(value) => updateSetting('muteVenueChats', value)}
         />
         
         {/* Preferences */}
         <PreferencesSection
-          pushNotifications={pushNotifications}
-          setPushNotifications={setPushNotifications}
-          vibePreference={vibePreference}
-          setVibePreference={setVibePreference}
+          pushNotifications={settings.pushNotifications}
+          setPushNotifications={(value) => updateSetting('pushNotifications', value)}
+          vibePreference={settings.vibePreference}
+          setVibePreference={(value) => updateSetting('vibePreference', value)}
         />
         
         {/* About Hawkly - Data Transparency */}
