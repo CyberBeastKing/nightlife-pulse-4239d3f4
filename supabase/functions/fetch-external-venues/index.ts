@@ -35,17 +35,47 @@ serve(async (req) => {
       console.error('Error fetching categories:', catError);
     }
 
-    // Fetch only 'social' places from the new Overture Maps table
-    // 'exclude' and 'utility' place types are filtered out server-side for performance
-    const { data: rawPlaces, error: rawError } = await externalSupabase
-      .from('places_overture')
-      .select('*, category:category_id(id, name)')
-      .eq('place_type', 'social');
+    // Fetch all 'social' places from the new Overture Maps table with pagination
+    // Supabase has a 1000 row default limit, so we paginate to get all venues
+    const PAGE_SIZE = 1000;
+    let allPlaces: any[] = [];
+    let page = 0;
+    let hasMore = true;
+    
+    while (hasMore) {
+      const { data: pageData, error: pageError } = await externalSupabase
+        .from('places_overture')
+        .select('*, category:category_id(id, name)')
+        .eq('place_type', 'social')
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
       
-    if (rawError) {
-      console.error('Error fetching places:', rawError);
-      throw rawError;
+      if (pageError) {
+        console.error('Error fetching places page:', page, pageError);
+        throw pageError;
+      }
+      
+      if (pageData && pageData.length > 0) {
+        allPlaces = allPlaces.concat(pageData);
+        page++;
+        hasMore = pageData.length === PAGE_SIZE;
+      } else {
+        hasMore = false;
+      }
     }
+    
+    console.log('Fetched total places:', allPlaces.length);
+    
+    // Debug: log first place to see column structure
+    if (allPlaces.length > 0) {
+      const sample = allPlaces[0];
+      console.log('Sample place keys:', Object.keys(sample));
+      console.log('Sample geog:', sample.geog);
+      console.log('Sample location:', sample.location);
+      console.log('Sample latitude:', sample.latitude);
+      console.log('Sample longitude:', sample.longitude);
+    }
+    
+    const rawPlaces = allPlaces;
 
     // Parse WKB hex string to extract coordinates
     // WKB format: 0101000020E6100000 + X (8 bytes) + Y (8 bytes)
@@ -145,15 +175,26 @@ serve(async (req) => {
     });
 
     const venues = (rawPlaces || []).map((place: any) => {
-      const coords = parseWKB(place.location);
+      // Overture data has direct latitude/longitude columns
+      // Fall back to WKB parsing for legacy 'places' table if needed
+      let lat = place.latitude;
+      let lng = place.longitude;
+      
+      // If no direct coords, try WKB parsing from geog/location columns
+      if (!lat || !lng) {
+        const coords = parseWKB(place.geog) || parseWKB(place.location);
+        lat = coords?.lat || 0;
+        lng = coords?.lng || 0;
+      }
+      
       const categoryId = place.category?.id || null;
 
       return {
         id: place.id,
         name: place.google_name || place.name || 'Unknown Venue',
         address: place.google_address || place.address,
-        latitude: coords?.lat || 0,
-        longitude: coords?.lng || 0,
+        latitude: lat,
+        longitude: lng,
         category: categoryId, // keep UUID so filtering matches chip selections
         place_type: place.place_type || 'social',
         hot_streak: place.hot_streak || 'quiet',
