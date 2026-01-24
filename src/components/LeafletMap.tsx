@@ -216,6 +216,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
     const popupRef = useRef<L.Popup | null>(null);
     const popupRootRef = useRef<Root | null>(null);
     const isZoomingRef = useRef(false);
+    const lastZoomEndAtRef = useRef<number>(0);
 
      // Map backend category UUIDs (and normalized labels) -> {color, emoji}
      const categoryStyleLookup = useMemo(() => {
@@ -315,6 +316,7 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
       });
       map.on('zoomend', () => {
         isZoomingRef.current = false;
+        lastZoomEndAtRef.current = Date.now();
       });
 
       // Click on map to deselect (ignore clicks from controls and zoom gestures)
@@ -468,7 +470,12 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
       popupRootRef.current = root;
 
       // Handle popup close event
+      // IMPORTANT: Leaflet/markercluster may remove popups during zoom/cluster refresh.
+      // If we clear selection in those cases, the selected marker can get cleaned up
+      // by the next viewport refresh. Only clear selection when it's a true user-intent close.
       popup.on('remove', () => {
+        if (isZoomingRef.current) return;
+        if (Date.now() - lastZoomEndAtRef.current < 500) return;
         onVenueSelect(null);
       });
 
