@@ -1,15 +1,12 @@
 import { useEffect, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
-import { createRoot, Root } from 'react-dom/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import { Venue, ReactionType } from '@/types/venue';
+import { Venue } from '@/types/venue';
 import { cn } from '@/lib/utils';
-import { VenuePopup } from './VenuePopup';
 import type { CategoryData } from '@/hooks/useExternalVenues';
-import { useAuth } from '@/hooks/useAuth';
 
 export interface MapBounds {
   minLat: number;
@@ -24,10 +21,6 @@ interface LeafletMapProps {
   selectedVenue: Venue | null;
   onVenueSelect: (venue: Venue | null) => void;
   userLocation?: { lat: number; lng: number };
-  onReact: (type: ReactionType) => void;
-  onCheckIn: () => void;
-  onChat: () => void;
-  onNavigate: () => void;
   onBoundsChange?: (bounds: MapBounds) => void;
 }
 
@@ -206,17 +199,13 @@ const createUserIcon = () => {
 };
 
 export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
-  ({ venues, categories = [], selectedVenue, onVenueSelect, userLocation, onReact, onCheckIn, onChat, onNavigate, onBoundsChange }, ref) => {
-    const { user } = useAuth();
+  ({ venues, categories = [], selectedVenue, onVenueSelect, userLocation, onBoundsChange }, ref) => {
     const mapRef = useRef<L.Map | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const markersRef = useRef<Map<string, L.Marker>>(new Map());
     const clusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
     const userMarkerRef = useRef<L.Marker | null>(null);
-    const popupRef = useRef<L.Popup | null>(null);
-    const popupRootRef = useRef<Root | null>(null);
     const isZoomingRef = useRef(false);
-    const lastZoomEndAtRef = useRef<number>(0);
 
      // Map backend category UUIDs (and normalized labels) -> {color, emoji}
      const categoryStyleLookup = useMemo(() => {
@@ -316,7 +305,6 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
       });
       map.on('zoomend', () => {
         isZoomingRef.current = false;
-        lastZoomEndAtRef.current = Date.now();
       });
 
       // Click on map to deselect (ignore clicks from controls and zoom gestures)
@@ -417,76 +405,6 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
       }
     }, [venues, selectedVenue, onVenueSelect, categoryStyleLookup]);
 
-    // Handle popup for selected venue
-    useEffect(() => {
-      if (!mapRef.current) return;
-
-      const map = mapRef.current;
-
-      // Close existing popup
-      if (popupRef.current) {
-        map.closePopup(popupRef.current);
-        popupRef.current = null;
-      }
-      
-      // Cleanup old root
-      if (popupRootRef.current) {
-        popupRootRef.current.unmount();
-        popupRootRef.current = null;
-      }
-
-      if (!selectedVenue) return;
-
-      // Create container for React portal
-      const container = document.createElement('div');
-      
-      // Create popup
-      const popup = L.popup({
-        closeButton: false,
-        className: 'venue-popup',
-        maxWidth: 320,
-        offset: [0, -10],
-      })
-        .setLatLng([selectedVenue.latitude, selectedVenue.longitude])
-        .setContent(container)
-        .openOn(map);
-
-      // Render React component into popup
-      const root = createRoot(container);
-      root.render(
-        <VenuePopup
-          venue={selectedVenue}
-          onClose={() => onVenueSelect(null)}
-          onReact={onReact}
-          onCheckIn={onCheckIn}
-          onChat={onChat}
-          onNavigate={onNavigate}
-          userCoords={userLocation}
-          isAuthenticated={!!user}
-        />
-      );
-
-      popupRef.current = popup;
-      popupRootRef.current = root;
-
-      // Handle popup close event
-      // IMPORTANT: Leaflet/markercluster may remove popups during zoom/cluster refresh.
-      // If we clear selection in those cases, the selected marker can get cleaned up
-      // by the next viewport refresh. Only clear selection when it's a true user-intent close.
-      popup.on('remove', () => {
-        if (isZoomingRef.current) return;
-        if (Date.now() - lastZoomEndAtRef.current < 500) return;
-        onVenueSelect(null);
-      });
-
-      return () => {
-        if (popupRootRef.current) {
-          popupRootRef.current.unmount();
-          popupRootRef.current = null;
-        }
-      };
-    }, [selectedVenue, onVenueSelect, onReact, onCheckIn, onNavigate]);
-
     // Handle recenter
     const handleRecenter = () => {
       if (!mapRef.current) return;
@@ -562,24 +480,6 @@ export const LeafletMap = forwardRef<LeafletMapRef, LeafletMapProps>(
           
           .leaflet-control-attribution a {
             color: hsl(var(--primary)) !important;
-          }
-
-          /* Custom popup styles */
-          .venue-popup .leaflet-popup-content-wrapper {
-            background: hsl(var(--card));
-            border-radius: 20px;
-            padding: 0;
-            border: 1px solid hsl(var(--border));
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-          }
-          
-          .venue-popup .leaflet-popup-content {
-            margin: 16px;
-            width: auto !important;
-          }
-          
-          .venue-popup .leaflet-popup-tip-container {
-            display: none;
           }
 
           /* Custom cluster marker styles */

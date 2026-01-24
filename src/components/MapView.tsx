@@ -2,9 +2,11 @@ import { useState, useMemo, useRef, useCallback } from 'react';
 import { mockVenues, categories as fallbackCategories } from '@/data/mockVenues';
 import { LeafletMap, LeafletMapRef, MapBounds } from './LeafletMap';
 import { FloatingSearchBar } from './FloatingSearchBar';
+import { VenueOverlay } from './VenueOverlay';
 import { Venue, ReactionType } from '@/types/venue';
 import { useViewportVenues } from '@/hooks/useViewportVenues';
 import { useUserLocation } from '@/hooks/useUserLocation';
+import { useAuth } from '@/hooks/useAuth';
 
 interface MapViewProps {
   searchQuery: string;
@@ -17,6 +19,7 @@ interface MapViewProps {
 export function MapView({ searchQuery, selectedCategories, onSearchChange, onCategoryToggle, onOpenVenueChat }: MapViewProps) {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const mapRef = useRef<LeafletMapRef>(null);
+  const { user } = useAuth();
   
   // Use shared location context
   const { coords: userLocation } = useUserLocation();
@@ -110,6 +113,10 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
     });
   }, [onSearchChange]);
 
+  const handleCloseOverlay = useCallback(() => {
+    setSelectedVenue(null);
+  }, []);
+
   return (
     <div className="relative w-full h-full">
       {/* Floating Search & Filters */}
@@ -131,13 +138,20 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         selectedVenue={selectedVenue}
         onVenueSelect={setSelectedVenue}
         userLocation={userLocation || undefined}
+        onBoundsChange={handleBoundsChange}
+      />
+
+      {/* React-controlled venue overlay (replaces Leaflet popup) */}
+      <VenueOverlay
+        venue={selectedVenue}
+        onClose={handleCloseOverlay}
         onReact={handleReact}
         onCheckIn={handleCheckIn}
         onChat={handleChat}
         onNavigate={handleNavigate}
-        onBoundsChange={handleBoundsChange}
+        userCoords={userLocation}
+        isAuthenticated={!!user}
       />
-
     </div>
   );
 }
