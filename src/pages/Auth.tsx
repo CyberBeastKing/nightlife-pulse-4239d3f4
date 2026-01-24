@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { LoginForm } from "@/components/auth/LoginForm";
@@ -8,6 +8,19 @@ import { Zap } from "lucide-react";
 export default function Auth() {
   const { user, profile, loading } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const navigate = useNavigate();
+
+  // Handle redirect after auth (for invite links)
+  useEffect(() => {
+    if (user && profile) {
+      const redirectUrl = sessionStorage.getItem('redirectAfterAuth');
+      if (redirectUrl) {
+        sessionStorage.removeItem('redirectAfterAuth');
+        // Navigate to the stored URL
+        window.location.href = redirectUrl;
+      }
+    }
+  }, [user, profile]);
 
   if (loading) {
     return (
@@ -24,8 +37,14 @@ export default function Auth() {
     return <Navigate to="/complete-profile" replace />;
   }
 
-  // If user is fully set up, redirect to home
+  // If user is fully set up, check for redirect or go home
   if (user && profile) {
+    const redirectUrl = sessionStorage.getItem('redirectAfterAuth');
+    if (redirectUrl) {
+      sessionStorage.removeItem('redirectAfterAuth');
+      window.location.href = redirectUrl;
+      return null;
+    }
     return <Navigate to="/" replace />;
   }
 

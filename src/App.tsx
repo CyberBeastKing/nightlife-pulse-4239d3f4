@@ -8,6 +8,7 @@ import { LocationProvider } from "@/hooks/useUserLocation";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import CompleteProfile from "./pages/CompleteProfile";
+import AcceptInvite from "./pages/AcceptInvite";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/complete-profile" element={<CompleteProfile />} />
+              <Route path="/accept-invite" element={<AcceptInvite />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
