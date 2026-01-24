@@ -15,6 +15,44 @@ interface VenuePopupProps {
   isAuthenticated?: boolean;
 }
 
+// Hawkly POI Color System for category badges
+const CATEGORY_STYLES: Record<string, { color: string; emoji: string; label: string }> = {
+  bar: { color: '#FFB020', emoji: '🍺', label: 'Bar' },
+  bars: { color: '#FFB020', emoji: '🍺', label: 'Bar' },
+  nightclub: { color: '#8B5CF6', emoji: '🎵', label: 'Nightclub' },
+  nightclubs: { color: '#8B5CF6', emoji: '🎵', label: 'Nightclub' },
+  clubs: { color: '#8B5CF6', emoji: '🎵', label: 'Club' },
+  lounge: { color: '#2DD4BF', emoji: '🛋️', label: 'Lounge' },
+  lounges: { color: '#2DD4BF', emoji: '🛋️', label: 'Lounge' },
+  bar_grill: { color: '#FB923C', emoji: '🍔', label: 'Bar & Grill' },
+  'bar_&_grill': { color: '#FB923C', emoji: '🍔', label: 'Bar & Grill' },
+  restaurant: { color: '#EF4444', emoji: '🍽️', label: 'Restaurant' },
+  restaurants: { color: '#EF4444', emoji: '🍽️', label: 'Restaurant' },
+  food: { color: '#EF4444', emoji: '🍽️', label: 'Food' },
+  coffee: { color: '#A16207', emoji: '☕', label: 'Coffee' },
+  coffee_shops: { color: '#A16207', emoji: '☕', label: 'Coffee Shop' },
+  brewery: { color: '#FFB020', emoji: '🍺', label: 'Brewery' },
+  sports_bar: { color: '#FB923C', emoji: '🏈', label: 'Sports Bar' },
+  live_music: { color: '#8B5CF6', emoji: '🎵', label: 'Live Music' },
+  events: { color: '#EC4899', emoji: '🎟️', label: 'Events' },
+  entertainment: { color: '#38BDF8', emoji: '🎬', label: 'Entertainment' },
+  sports_venue: { color: '#22C55E', emoji: '🏟️', label: 'Sports Venue' },
+  sports_venues: { color: '#22C55E', emoji: '🏟️', label: 'Sports Venue' },
+};
+
+const normalizeCategory = (value: string): string =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, '_')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+
+const getCategoryStyle = (category: string) => {
+  const normalized = normalizeCategory(String(category || ''));
+  return CATEGORY_STYLES[normalized] || { color: '#6B7280', emoji: '📍', label: 'Venue' };
+};
+
 const hotStreakBadge: Record<string, { label: string; class: string }> = {
   hottest_spot: { label: '🌟 HOTTEST SPOT', class: 'bg-marker-hottest text-black' },
   on_fire: { label: '🔥 ON FIRE', class: 'bg-marker-fire text-white' },
@@ -76,6 +114,7 @@ export function VenuePopup({
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   
   const badge = hotStreakBadge[venue.hot_streak];
+  const categoryStyle = getCategoryStyle(venue.category);
   
   // Handle both object vibe (expected) and string vibe (from external DB)
   const vibeData = typeof venue.vibe === 'string' 
@@ -135,10 +174,10 @@ export function VenuePopup({
   return (
     <div className="w-[280px]">
       {/* Header */}
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-foreground truncate">{venue.name}</h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground truncate">
             {venue.address || 'Address unavailable'}
           </p>
         </div>
@@ -149,6 +188,19 @@ export function VenuePopup({
         >
           <X className="w-4 h-4 text-muted-foreground" />
         </button>
+      </div>
+      
+      {/* Category Badge */}
+      <div 
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mb-3"
+        style={{ 
+          backgroundColor: `${categoryStyle.color}20`,
+          color: categoryStyle.color,
+          border: `1px solid ${categoryStyle.color}40`
+        }}
+      >
+        <span>{categoryStyle.emoji}</span>
+        <span>{categoryStyle.label}</span>
       </div>
       
       {/* Hot Streak Badge */}
