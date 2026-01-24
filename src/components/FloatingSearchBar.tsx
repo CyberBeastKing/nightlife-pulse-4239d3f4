@@ -1,5 +1,5 @@
-import { Search, X, ChevronDown, MapPin } from 'lucide-react';
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { Search, X, ChevronDown, MapPin, Loader2 } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { utilityCategories, excludedCategoryLabels } from '@/data/mockVenues';
 import { Venue } from '@/types/venue';
@@ -42,8 +42,11 @@ export function FloatingSearchBar({
   const [isFocused, setIsFocused] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchResults, setSearchResults] = useState<Venue[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   // We use LABEL-based matching (not IDs) because backend category IDs are UUIDs,
   // while our curated utility list uses slugs. This prevents duplicates.
@@ -79,14 +82,39 @@ export function FloatingSearchBar({
 
   const hasUtilitySelected = utilityCategoriesResolved.some((c) => selectedCategories.has(c.id));
 
-  // Filter suggestions based on search value
-  const suggestions = useMemo(() => {
-    if (!searchValue || searchValue.length < 2) return [];
-    const query = searchValue.toLowerCase();
-    return venues
-      .filter((venue) => venue.name.toLowerCase().includes(query))
-      .slice(0, 6); // Limit to 6 suggestions
-  }, [searchValue, venues]);
+  // Search venues via API endpoint (searches ALL 29k+ venues)
+  const searchVenues = useCallback(async (query: string) => {
+    if (!query || query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search-venues?q=${encodeURIComponent(query)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setSearchResults(data.venues || []);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
 
   // Handle click outside to close suggestions
   useEffect(() => {
@@ -105,14 +133,23 @@ export function FloatingSearchBar({
   }, []);
 
   const handleSuggestionClick = (venue: Venue) => {
-    onSearchChange(venue.name);
+    onSearchChange('');
     setShowSuggestions(false);
+    setSearchResults([]);
     onVenueSelect?.(venue);
   };
 
   const handleInputChange = (value: string) => {
     onSearchChange(value);
     setShowSuggestions(value.length >= 2);
+
+    // Debounce API calls
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      searchVenues(value);
+    }, 300);
   };
 
   const handleInputFocus = () => {
@@ -160,30 +197,37 @@ export function FloatingSearchBar({
         </div>
 
         {/* Search Suggestions Dropdown */}
-        {showSuggestions && suggestions.length > 0 && (
+        {showSuggestions && (searchResults.length > 0 || isSearching) && (
           <div
             ref={suggestionsRef}
             className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl animate-fade-in z-[1100] border border-border/30"
           >
-            {suggestions.map((venue) => (
-              <button
-                key={venue.id}
-                onClick={() => handleSuggestionClick(venue)}
-                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-secondary/50 transition-colors text-left border-b border-border/20 last:border-b-0"
-              >
-                <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {venue.name}
-                  </p>
-                  {venue.address && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {venue.address}
+            {isSearching ? (
+              <div className="px-4 py-3 flex items-center gap-3 text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">Searching...</span>
+              </div>
+            ) : (
+              searchResults.map((venue) => (
+                <button
+                  key={venue.id}
+                  onClick={() => handleSuggestionClick(venue)}
+                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-secondary/50 transition-colors text-left border-b border-border/20 last:border-b-0"
+                >
+                  <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {venue.name}
                     </p>
-                  )}
-                </div>
-              </button>
-            ))}
+                    {venue.address && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {venue.address}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
           </div>
         )}
       </div>
