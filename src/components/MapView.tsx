@@ -1,9 +1,9 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { mockVenues, categories as fallbackCategories } from '@/data/mockVenues';
-import { LeafletMap, LeafletMapRef } from './LeafletMap';
+import { LeafletMap, LeafletMapRef, MapBounds } from './LeafletMap';
 import { FloatingSearchBar } from './FloatingSearchBar';
 import { Venue, ReactionType } from '@/types/venue';
-import { useExternalVenues } from '@/hooks/useExternalVenues';
+import { useViewportVenues } from '@/hooks/useViewportVenues';
 import { useUserLocation } from '@/hooks/useUserLocation';
 
 interface MapViewProps {
@@ -21,10 +21,15 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
   // Use shared location context
   const { coords: userLocation } = useUserLocation();
   
-  // Fetch venues and categories from external Supabase, fallback to mock data
-  const { data: externalData, isLoading, error } = useExternalVenues();
+  // Use viewport-based venue fetching for performance
+  const { data: externalData, isLoading, error, updateBounds } = useViewportVenues();
   const venues = externalData?.venues && externalData.venues.length > 0 ? externalData.venues : mockVenues;
   const categories = externalData?.categories && externalData.categories.length > 0 ? externalData.categories : fallbackCategories;
+
+  // Handle map bounds changes
+  const handleBoundsChange = useCallback((bounds: MapBounds) => {
+    updateBounds(bounds);
+  }, [updateBounds]);
 
   if (error) {
     console.warn('Using mock data - external fetch failed:', error);
@@ -110,6 +115,7 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         onCheckIn={handleCheckIn}
         onChat={handleChat}
         onNavigate={handleNavigate}
+        onBoundsChange={handleBoundsChange}
       />
 
     </div>
