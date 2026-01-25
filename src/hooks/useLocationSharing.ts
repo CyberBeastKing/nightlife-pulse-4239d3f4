@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 interface SharedUser {
   id: string;
   recipientId: string | null;
-  recipientPhone: string | null;
   username: string | null;
   status: 'pending' | 'accepted' | 'declined';
   createdAt: string;
@@ -80,7 +79,6 @@ export function useLocationSharing(): LocationSharingHook {
       const users: SharedUser[] = sharingData?.map((sharing, index) => ({
         id: sharing.id,
         recipientId: sharing.recipient_id,
-        recipientPhone: sharing.recipient_phone,
         username: sharing.recipient_id ? profilesMap[sharing.recipient_id] || null : null,
         status: sharing.status as 'pending' | 'accepted' | 'declined',
         createdAt: sharing.created_at,

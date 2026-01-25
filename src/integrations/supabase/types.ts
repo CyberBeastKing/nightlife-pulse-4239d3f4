@@ -142,7 +142,6 @@ export type Database = {
           id: string
           invite_token: string | null
           recipient_id: string | null
-          recipient_phone: string | null
           sharer_id: string
           status: string
         }
@@ -152,7 +151,6 @@ export type Database = {
           id?: string
           invite_token?: string | null
           recipient_id?: string | null
-          recipient_phone?: string | null
           sharer_id: string
           status?: string
         }
@@ -162,7 +160,6 @@ export type Database = {
           id?: string
           invite_token?: string | null
           recipient_id?: string | null
-          recipient_phone?: string | null
           sharer_id?: string
           status?: string
         }
