@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Venue, ReactionType } from '@/types/venue';
 import { X, Users, Volume2, Zap, Navigation, MessageCircle, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
+import { useEnhancedAddress } from '@/utils/geocoding';
 interface VenuePopupProps {
   venue: Venue;
   onClose: () => void;
@@ -113,6 +113,13 @@ export function VenuePopup({
 }: VenuePopupProps) {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   
+  // Enhanced address with city/state from reverse geocoding
+  const { fullAddress } = useEnhancedAddress(
+    venue.address || 'Address unavailable',
+    venue.latitude,
+    venue.longitude
+  );
+  
   const badge = hotStreakBadge[venue.hot_streak];
   const categoryStyle = getCategoryStyle(venue.category);
   
@@ -178,7 +185,7 @@ export function VenuePopup({
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-foreground truncate">{venue.name}</h2>
           <p className="text-xs text-muted-foreground truncate">
-            {venue.address || 'Address unavailable'}
+            {fullAddress}
           </p>
         </div>
         <button
