@@ -1,6 +1,7 @@
 import { Flame, TrendingUp, Zap, Star, Users, MapPin, Volume2, Sparkles } from 'lucide-react';
 import { Venue } from '@/types/venue';
 import { cn } from '@/lib/utils';
+import { useEnhancedAddress } from '@/utils/geocoding';
 
 interface TrendingCardProps {
   venue: Venue;
@@ -48,6 +49,13 @@ export function TrendingCard({ venue, onClick, variant = 'compact' }: TrendingCa
   const vibeInfo = getVibeString(venue.vibe);
   const reactionCount = venue.reactions.lit + venue.reactions.vibe + venue.reactions.curious;
   const distance = venue.distance ? `${venue.distance.toFixed(1)} mi` : '0.5 mi';
+  
+  // Enhanced address with city/state
+  const { fullAddress } = useEnhancedAddress(
+    venue.address || '',
+    venue.latitude,
+    venue.longitude
+  );
 
   if (variant === 'featured') {
     return (
@@ -77,7 +85,7 @@ export function TrendingCard({ venue, onClick, variant = 'compact' }: TrendingCa
               {venue.name}
             </h3>
             
-            <div className="flex items-center gap-1.5 text-white/70 text-sm mb-2">
+            <div className="flex items-center flex-wrap gap-1.5 text-white/70 text-sm mb-2">
               {config && (
                 <span className="font-medium" style={{ color: config.color }}>
                   {config.label}
@@ -85,6 +93,12 @@ export function TrendingCard({ venue, onClick, variant = 'compact' }: TrendingCa
               )}
               <span>•</span>
               <span>{distance}</span>
+              {fullAddress && (
+                <>
+                  <span>•</span>
+                  <span className="truncate max-w-[150px]">{fullAddress}</span>
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-3 text-xs text-white/60">
@@ -144,7 +158,7 @@ export function TrendingCard({ venue, onClick, variant = 'compact' }: TrendingCa
             {venue.name}
           </h3>
           
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
+          <div className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground mb-2">
             {config && (
               <span className="font-medium" style={{ color: config.color }}>
                 {config.label}
@@ -152,6 +166,12 @@ export function TrendingCard({ venue, onClick, variant = 'compact' }: TrendingCa
             )}
             <span>•</span>
             <span>{distance}</span>
+            {fullAddress && (
+              <>
+                <span>•</span>
+                <span className="truncate max-w-[120px]">{fullAddress}</span>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
