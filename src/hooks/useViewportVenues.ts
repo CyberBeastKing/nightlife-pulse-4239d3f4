@@ -49,6 +49,11 @@ export function useViewportVenues() {
   const query = useQuery({
     queryKey: ['viewport-venues', debouncedBounds],
     queryFn: async (): Promise<ViewportVenuesResponse> => {
+      // Check if offline before attempting fetch
+      if (!navigator.onLine) {
+        throw new Error('OFFLINE');
+      }
+
       // Build query params for viewport
       const params = new URLSearchParams();
       if (debouncedBounds) {
@@ -58,43 +63,57 @@ export function useViewportVenues() {
         params.set('maxLng', debouncedBounds.maxLng.toString());
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-external-venues?${params.toString()}`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            'Content-Type': 'application/json',
-          },
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-external-venues?${params.toString()}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('NETWORK_ERROR');
         }
-      );
 
-      if (!response.ok) {
-        throw new Error(`Viewport fetch failed: ${response.statusText}`);
+        const result: ViewportVenuesResponse = await response.json();
+
+        // Merge new venues into cache
+        result.venues.forEach(venue => {
+          venueCache.current.set(venue.id, venue);
+        });
+
+        // Update categories cache
+        if (result.categories.length > 0) {
+          categoriesCache.current = result.categories;
+        }
+
+        console.log(`Viewport: ${result.venues.length} venues fetched, ${venueCache.current.size} total cached`);
+
+        return {
+          venues: Array.from(venueCache.current.values()),
+          categories: categoriesCache.current,
+        };
+      } catch (error) {
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+          throw new Error('NETWORK_ERROR');
+        }
+        throw error;
       }
-
-      const result: ViewportVenuesResponse = await response.json();
-
-      // Merge new venues into cache
-      result.venues.forEach(venue => {
-        venueCache.current.set(venue.id, venue);
-      });
-
-      // Update categories cache
-      if (result.categories.length > 0) {
-        categoriesCache.current = result.categories;
-      }
-
-      console.log(`Viewport: ${result.venues.length} venues fetched, ${venueCache.current.size} total cached`);
-
-      return {
-        venues: Array.from(venueCache.current.values()),
-        categories: categoriesCache.current,
-      };
     },
     staleTime: 1000 * 30, // 30 seconds
     refetchOnMount: false,
     enabled: debouncedBounds !== null,
+    retry: (failureCount, error) => {
+      // Don't retry if offline
+      if (error instanceof Error && error.message === 'OFFLINE') {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 
   const updateBounds = useCallback((newBounds: Bounds) => {
