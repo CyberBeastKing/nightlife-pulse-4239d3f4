@@ -1,6 +1,7 @@
 export { ProfileView } from './ProfileView';
 export { IdentitySection } from './IdentitySection';
-export { AvatarUpload } from './AvatarUpload';
+export { AvatarStudio } from './AvatarStudio';
+export { MonsterAvatar } from './MonsterAvatar';
 export { LocationTransparencyPanel } from './LocationTransparencyPanel';
 export { LocationControlsSection } from './LocationControlsSection';
 export { SocialSharingSection } from './SocialSharingSection';
