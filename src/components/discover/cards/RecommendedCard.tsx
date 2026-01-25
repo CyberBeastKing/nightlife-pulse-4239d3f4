@@ -32,7 +32,6 @@ const categoryLabels: Record<string, { emoji: string; label: string }> = {
 export function RecommendedCard({ venue, matchScore, reason, onClick }: RecommendedCardProps) {
   const vibeInfo = getVibeString(venue.vibe);
   const distance = venue.distance ? `${venue.distance.toFixed(1)} mi` : '0.5 mi';
-  const categoryInfo = categoryLabels[venue.category] || { emoji: '📍', label: venue.category };
   
   // Enhanced address with city/state
   const { fullAddress } = useEnhancedAddress(
@@ -40,6 +39,10 @@ export function RecommendedCard({ venue, matchScore, reason, onClick }: Recommen
     venue.latitude,
     venue.longitude
   );
+  
+  // Only use category label if it's a known category (not a UUID)
+  const isValidCategory = venue.category && !venue.category.includes('-') && categoryLabels[venue.category];
+  const categoryInfo = isValidCategory ? categoryLabels[venue.category] : null;
 
   return (
     <button
@@ -66,16 +69,14 @@ export function RecommendedCard({ venue, matchScore, reason, onClick }: Recommen
           </h3>
           
           <div className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground mb-2">
-            <span>{categoryInfo.emoji}</span>
-            <span>{categoryInfo.label}</span>
+            <MapPin className="w-3 h-3" />
+            {fullAddress ? (
+              <span className="truncate">{fullAddress}</span>
+            ) : (
+              <span>Loading address...</span>
+            )}
             <span>•</span>
             <span>{distance}</span>
-            {fullAddress && (
-              <>
-                <span>•</span>
-                <span className="truncate max-w-[120px]">{fullAddress}</span>
-              </>
-            )}
           </div>
 
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">

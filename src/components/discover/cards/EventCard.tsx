@@ -1,11 +1,15 @@
 import { Calendar, Clock, MapPin, Ticket, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useEnhancedAddress } from '@/utils/geocoding';
 
 export interface Event {
   id: string;
   title: string;
   venue: string;
   venue_id?: string;
+  venue_address?: string;
+  venue_latitude?: number;
+  venue_longitude?: number;
   start_time: string;
   end_time?: string;
   date: string;
@@ -33,6 +37,13 @@ export function EventCard({ event, onClick }: EventCardProps) {
   const config = eventTypeConfig[event.type] || eventTypeConfig.special;
   const distance = event.distance ? `${event.distance.toFixed(1)} mi` : null;
   const goingCount = event.going_count || Math.floor(Math.random() * 50) + 10;
+  
+  // Enhanced address with city/state
+  const { fullAddress } = useEnhancedAddress(
+    event.venue_address || event.venue || '',
+    event.venue_latitude || 0,
+    event.venue_longitude || 0
+  );
 
   return (
     <button
@@ -61,6 +72,12 @@ export function EventCard({ event, onClick }: EventCardProps) {
             <Clock className="w-3 h-3" />
             <span>{event.start_time}{event.end_time ? ` - ${event.end_time}` : ''}</span>
           </div>
+          
+          {/* Venue address */}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+            <MapPin className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{fullAddress || event.venue}</span>
+          </div>
 
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
             <span className="flex items-center gap-1">
@@ -69,7 +86,6 @@ export function EventCard({ event, onClick }: EventCardProps) {
             </span>
             {distance && (
               <span className="flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
                 {distance}
               </span>
             )}
