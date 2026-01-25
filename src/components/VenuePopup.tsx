@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Venue, ReactionType } from '@/types/venue';
-import { X, Users, Volume2, Zap, Navigation, MessageCircle, MapPin, Loader2 } from 'lucide-react';
+import { X, Users, Volume2, Zap, Navigation, MessageCircle, MapPin, Loader2, Flag, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEnhancedAddress } from '@/utils/geocoding';
 import { getCategoryStyle } from '@/utils/categoryStyles';
 import { normalizeVibeData, SOUND_LEVEL_LABELS, ENERGY_LABELS } from '@/utils/vibeUtils';
+import { ReportIssueSheet } from '@/components/venue/ReportIssueSheet';
+import { AddPhotosSheet } from '@/components/venue/AddPhotosSheet';
 
 interface VenuePopupProps {
   venue: Venue;
@@ -77,6 +79,8 @@ export function VenuePopup({
   isAuthenticated = false,
 }: VenuePopupProps) {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
+  const [showReportSheet, setShowReportSheet] = useState(false);
+  const [showPhotosSheet, setShowPhotosSheet] = useState(false);
   
   // Enhanced address with city/state from reverse geocoding
   const { fullAddress } = useEnhancedAddress(
@@ -142,23 +146,45 @@ export function VenuePopup({
   const isCheckInDisabled = !canCheckIn || isCheckingIn;
   
   return (
-    <div className="w-[280px]">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-bold text-foreground truncate">{venue.name}</h2>
-          <p className="text-xs text-muted-foreground truncate">
-            {fullAddress}
-          </p>
+    <>
+      <div className="w-[280px]">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold text-foreground truncate">{venue.name}</h2>
+            <p className="text-xs text-muted-foreground truncate">
+              {fullAddress}
+            </p>
+          </div>
+          <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+            {/* Report Issue Button */}
+            <button
+              onClick={() => setShowReportSheet(true)}
+              className="p-1.5 rounded-full hover:bg-amber-500/20 transition-colors"
+              aria-label="Report issue"
+              title="Report an issue"
+            >
+              <Flag className="w-4 h-4 text-amber-500" />
+            </button>
+            {/* Add Photos Button */}
+            <button
+              onClick={() => setShowPhotosSheet(true)}
+              className="p-1.5 rounded-full hover:bg-primary/20 transition-colors"
+              aria-label="Add photos"
+              title="Add photos"
+            >
+              <Camera className="w-4 h-4 text-primary" />
+            </button>
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-full hover:bg-secondary/50 transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-full hover:bg-secondary/50 transition-colors flex-shrink-0 ml-2"
-          aria-label="Close"
-        >
-          <X className="w-4 h-4 text-muted-foreground" />
-        </button>
-      </div>
       
       {/* Category Badge */}
       <div 
@@ -292,5 +318,20 @@ export function VenuePopup({
         </button>
       </div>
     </div>
+
+    {/* Report Issue Sheet */}
+    <ReportIssueSheet
+      venue={venue}
+      isOpen={showReportSheet}
+      onClose={() => setShowReportSheet(false)}
+    />
+
+    {/* Add Photos Sheet */}
+    <AddPhotosSheet
+      venue={venue}
+      isOpen={showPhotosSheet}
+      onClose={() => setShowPhotosSheet(false)}
+    />
+  </>
   );
 }
