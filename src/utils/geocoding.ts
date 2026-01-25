@@ -39,7 +39,7 @@ const setCachedGeocode = (lat: number, lng: number, data: GeocodedAddress) => {
   }
 };
 
-// Reverse geocode coordinates to get city/state
+// Reverse geocode coordinates to get city/state via edge function proxy
 export const reverseGeocode = async (
   lat: number, 
   lng: number
@@ -49,27 +49,20 @@ export const reverseGeocode = async (
   if (cached) return cached;
 
   try {
-    // Nominatim free API (OpenStreetMap)
+    // Use edge function proxy to avoid CORS issues
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reverse-geocode?lat=${lat}&lng=${lng}`,
       {
         headers: {
-          'User-Agent': 'Hawkly/1.0' // Required by Nominatim TOS
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Content-Type': 'application/json',
         }
       }
     );
 
     if (!response.ok) throw new Error('Geocoding failed');
 
-    const data = await response.json();
-    const address = data.address || {};
-
-    const result: GeocodedAddress = {
-      city: address.city || address.town || address.village || address.municipality,
-      state: address.state,
-      zip: address.postcode,
-      country: address.country
-    };
+    const result: GeocodedAddress = await response.json();
 
     // Cache the result
     setCachedGeocode(lat, lng, result);
