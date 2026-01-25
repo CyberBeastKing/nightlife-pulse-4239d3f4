@@ -3,6 +3,8 @@ import { Venue, ReactionType } from '@/types/venue';
 import { X, Users, Volume2, Zap, Navigation, MessageCircle, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEnhancedAddress } from '@/utils/geocoding';
+import { getCategoryStyle } from '@/utils/categoryStyles';
+
 interface VenuePopupProps {
   venue: Venue;
   onClose: () => void;
@@ -14,44 +16,6 @@ interface VenuePopupProps {
   userCoords?: { lat: number; lng: number } | null;
   isAuthenticated?: boolean;
 }
-
-// Hawkly POI Color System for category badges
-const CATEGORY_STYLES: Record<string, { color: string; emoji: string; label: string }> = {
-  bar: { color: '#FFB020', emoji: '🍺', label: 'Bar' },
-  bars: { color: '#FFB020', emoji: '🍺', label: 'Bar' },
-  nightclub: { color: '#8B5CF6', emoji: '🎵', label: 'Nightclub' },
-  nightclubs: { color: '#8B5CF6', emoji: '🎵', label: 'Nightclub' },
-  clubs: { color: '#8B5CF6', emoji: '🎵', label: 'Club' },
-  lounge: { color: '#2DD4BF', emoji: '🛋️', label: 'Lounge' },
-  lounges: { color: '#2DD4BF', emoji: '🛋️', label: 'Lounge' },
-  bar_grill: { color: '#FB923C', emoji: '🍔', label: 'Bar & Grill' },
-  'bar_&_grill': { color: '#FB923C', emoji: '🍔', label: 'Bar & Grill' },
-  restaurant: { color: '#EF4444', emoji: '🍽️', label: 'Restaurant' },
-  restaurants: { color: '#EF4444', emoji: '🍽️', label: 'Restaurant' },
-  food: { color: '#EF4444', emoji: '🍽️', label: 'Food' },
-  coffee: { color: '#A16207', emoji: '☕', label: 'Coffee' },
-  coffee_shops: { color: '#A16207', emoji: '☕', label: 'Coffee Shop' },
-  brewery: { color: '#FFB020', emoji: '🍺', label: 'Brewery' },
-  sports_bar: { color: '#FB923C', emoji: '🏈', label: 'Sports Bar' },
-  live_music: { color: '#8B5CF6', emoji: '🎵', label: 'Live Music' },
-  events: { color: '#EC4899', emoji: '🎟️', label: 'Events' },
-  entertainment: { color: '#38BDF8', emoji: '🎬', label: 'Entertainment' },
-  sports_venue: { color: '#22C55E', emoji: '🏟️', label: 'Sports Venue' },
-  sports_venues: { color: '#22C55E', emoji: '🏟️', label: 'Sports Venue' },
-};
-
-const normalizeCategory = (value: string): string =>
-  value
-    .toLowerCase()
-    .trim()
-    .replace(/&/g, '_')
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '');
-
-const getCategoryStyle = (category: string) => {
-  const normalized = normalizeCategory(String(category || ''));
-  return CATEGORY_STYLES[normalized] || { color: '#6B7280', emoji: '📍', label: 'Venue' };
-};
 
 const hotStreakBadge: Record<string, { label: string; class: string }> = {
   hottest_spot: { label: '🌟 HOTTEST SPOT', class: 'bg-marker-hottest text-black' },
