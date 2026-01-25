@@ -571,6 +571,7 @@ export type Database = {
       can_submit_correction: { Args: { p_user_id: string }; Returns: boolean }
       cleanup_expired_messages: { Args: never; Returns: undefined }
       cleanup_old_checkins: { Args: never; Returns: undefined }
+      delete_user_account: { Args: never; Returns: Json }
       get_user_strike_count: {
         Args: { target_user_id: string }
         Returns: number
