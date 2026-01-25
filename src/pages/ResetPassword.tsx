@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, Lock, Zap, CheckCircle } from "lucide-react";
+import { Loader2, Lock, Zap, CheckCircle, ShieldAlert } from "lucide-react";
 import { z } from "zod";
+import { checkPasswordBreach, getBreachMessage } from "@/utils/passwordSecurity";
 
 const passwordSchema = z.object({
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -50,6 +51,18 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
+      // Check for leaked password
+      const breachResult = await checkPasswordBreach(password);
+
+      if (breachResult.isCompromised) {
+        toast.error(getBreachMessage(breachResult.occurrences), {
+          icon: <ShieldAlert className="w-5 h-5 text-destructive" />,
+          duration: 6000,
+        });
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: result.data.password,
       });

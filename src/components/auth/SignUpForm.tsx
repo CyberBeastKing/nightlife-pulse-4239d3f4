@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, Mail, Lock, Calendar, AlertCircle } from "lucide-react";
+import { Loader2, Mail, Lock, Calendar, AlertCircle, ShieldAlert } from "lucide-react";
 import { z } from "zod";
+import { checkPasswordBreach, getBreachMessage } from "@/utils/passwordSecurity";
 
 // Calculate min date (must be 21 years ago)
 const today = new Date();
@@ -28,6 +29,7 @@ export function SignUpForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingPassword, setCheckingPassword] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +50,20 @@ export function SignUpForm() {
     setLoading(true);
 
     try {
+      // Check for leaked password
+      setCheckingPassword(true);
+      const breachResult = await checkPasswordBreach(password);
+      setCheckingPassword(false);
+
+      if (breachResult.isCompromised) {
+        toast.error(getBreachMessage(breachResult.occurrences), {
+          icon: <ShieldAlert className="w-5 h-5 text-destructive" />,
+          duration: 6000,
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: result.data.email,
         password: result.data.password,
@@ -69,6 +85,7 @@ export function SignUpForm() {
       toast.error(error.message || "Failed to create account");
     } finally {
       setLoading(false);
+      setCheckingPassword(false);
     }
   };
 

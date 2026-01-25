@@ -262,9 +262,9 @@ export function useVenueChat(venueId?: string) {
     if (!user) return false;
 
     try {
-      // Get current votes
+      // Get current votes from anonymous_messages view (respects RLS)
       const { data: current, error: fetchError } = await supabase
-        .from('chat_messages')
+        .from('anonymous_messages')
         .select('upvotes, downvotes')
         .eq('id', messageId)
         .single();
@@ -275,6 +275,7 @@ export function useVenueChat(venueId?: string) {
         ? { upvotes: (current?.upvotes || 0) + 1 }
         : { downvotes: (current?.downvotes || 0) + 1 };
 
+      // Update is allowed on chat_messages via RLS UPDATE policy
       const { error: updateError } = await supabase
         .from('chat_messages')
         .update(updates)
