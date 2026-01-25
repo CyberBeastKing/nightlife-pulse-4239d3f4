@@ -109,7 +109,7 @@ export function ReportIssueSheet({ venue, isOpen, onClose }: ReportIssueSheetPro
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl flex flex-col">
+      <SheetContent side="bottom" className="min-h-[85vh] rounded-t-3xl flex flex-col overflow-hidden">
         <SheetHeader className="pb-4">
           <div className="flex items-center gap-3">
             {step === 'details' && (
