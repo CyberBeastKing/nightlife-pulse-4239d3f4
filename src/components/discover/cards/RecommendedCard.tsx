@@ -27,6 +27,10 @@ const categoryLabels: Record<string, { emoji: string; label: string }> = {
   lounge: { emoji: '🍸', label: 'Lounge' },
   sports_bar: { emoji: '🏈', label: 'Sports Bar' },
   live_music: { emoji: '🎵', label: 'Live Music' },
+  bar_grill: { emoji: '🍔', label: 'Bar & Grill' },
+  events: { emoji: '🎟️', label: 'Events' },
+  sports_venue: { emoji: '🏟️', label: 'Sports Venue' },
+  venue: { emoji: '📍', label: 'Venue' },
 };
 
 export function RecommendedCard({ venue, matchScore, reason, onClick }: RecommendedCardProps) {
@@ -40,9 +44,8 @@ export function RecommendedCard({ venue, matchScore, reason, onClick }: Recommen
     venue.longitude
   );
   
-  // Only use category label if it's a known category (not a UUID)
-  const isValidCategory = venue.category && !venue.category.includes('-') && categoryLabels[venue.category];
-  const categoryInfo = isValidCategory ? categoryLabels[venue.category] : null;
+  // Get category info - now that edge function returns readable slugs
+  const categoryInfo = categoryLabels[venue.category] || categoryLabels.venue;
 
   return (
     <button
@@ -69,12 +72,10 @@ export function RecommendedCard({ venue, matchScore, reason, onClick }: Recommen
           </h3>
           
           <div className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground mb-2">
-            <MapPin className="w-3 h-3" />
-            {fullAddress ? (
-              <span className="truncate">{fullAddress}</span>
-            ) : (
-              <span>Loading address...</span>
-            )}
+            <span>{categoryInfo.emoji}</span>
+            <span>{categoryInfo.label}</span>
+            <span>•</span>
+            <span className="truncate max-w-[140px]">{fullAddress || venue.address || 'Loading...'}</span>
             <span>•</span>
             <span>{distance}</span>
           </div>

@@ -25,6 +25,10 @@ const categoryLabels: Record<string, { emoji: string; label: string }> = {
   lounge: { emoji: '🍸', label: 'Lounge' },
   sports_bar: { emoji: '🏈', label: 'Sports Bar' },
   live_music: { emoji: '🎵', label: 'Live Music' },
+  bar_grill: { emoji: '🍔', label: 'Bar & Grill' },
+  events: { emoji: '🎟️', label: 'Events' },
+  sports_venue: { emoji: '🏟️', label: 'Sports Venue' },
+  venue: { emoji: '📍', label: 'Venue' },
 };
 
 export function NearbyListItem({ venue, onClick }: NearbyListItemProps) {
@@ -40,9 +44,8 @@ export function NearbyListItem({ venue, onClick }: NearbyListItemProps) {
     venue.longitude
   );
   
-  // Only use category if it's valid (not a UUID)
-  const isValidCategory = venue.category && !venue.category.includes('-') && categoryLabels[venue.category];
-  const categoryInfo = isValidCategory ? categoryLabels[venue.category] : null;
+  // Get category info - now that edge function returns readable slugs
+  const categoryInfo = categoryLabels[venue.category] || categoryLabels.venue;
 
   return (
     <button
@@ -68,12 +71,10 @@ export function NearbyListItem({ venue, onClick }: NearbyListItemProps) {
         </div>
         
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5 mb-1.5">
-          <MapPin className="w-3 h-3 flex-shrink-0" />
-          {fullAddress ? (
-            <span className="truncate">{fullAddress}</span>
-          ) : (
-            <span>Loading address...</span>
-          )}
+          <span>{categoryInfo.emoji}</span>
+          <span>{categoryInfo.label}</span>
+          <span>•</span>
+          <span className="truncate">{fullAddress || venue.address || 'Loading...'}</span>
         </div>
 
         <div className="flex items-center gap-3 text-xs text-muted-foreground">

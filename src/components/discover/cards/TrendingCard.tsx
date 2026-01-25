@@ -44,11 +44,28 @@ function getVibeString(vibe: Venue['vibe']): { sound: string; energy: string } {
   };
 }
 
+const categoryLabels: Record<string, { emoji: string; label: string }> = {
+  bar: { emoji: '🍺', label: 'Bar' },
+  nightclub: { emoji: '🪩', label: 'Nightclub' },
+  restaurant: { emoji: '🍽️', label: 'Restaurant' },
+  coffee: { emoji: '☕', label: 'Coffee Shop' },
+  entertainment: { emoji: '🎭', label: 'Entertainment' },
+  brewery: { emoji: '🍻', label: 'Brewery' },
+  lounge: { emoji: '🍸', label: 'Lounge' },
+  sports_bar: { emoji: '🏈', label: 'Sports Bar' },
+  live_music: { emoji: '🎵', label: 'Live Music' },
+  bar_grill: { emoji: '🍔', label: 'Bar & Grill' },
+  events: { emoji: '🎟️', label: 'Events' },
+  sports_venue: { emoji: '🏟️', label: 'Sports Venue' },
+  venue: { emoji: '📍', label: 'Venue' },
+};
+
 export function TrendingCard({ venue, onClick, variant = 'compact' }: TrendingCardProps) {
   const config = hotStreakConfig[venue.hot_streak];
   const vibeInfo = getVibeString(venue.vibe);
   const reactionCount = venue.reactions.lit + venue.reactions.vibe + venue.reactions.curious;
   const distance = venue.distance ? `${venue.distance.toFixed(1)} mi` : '0.5 mi';
+  const categoryInfo = categoryLabels[venue.category] || categoryLabels.venue;
   
   // Enhanced address with city/state
   const { fullAddress } = useEnhancedAddress(
@@ -86,19 +103,12 @@ export function TrendingCard({ venue, onClick, variant = 'compact' }: TrendingCa
             </h3>
             
             <div className="flex items-center flex-wrap gap-1.5 text-white/70 text-sm mb-2">
-              {config && (
-                <span className="font-medium" style={{ color: config.color }}>
-                  {config.label}
-                </span>
-              )}
+              <span>{categoryInfo.emoji}</span>
+              <span>{categoryInfo.label}</span>
               <span>•</span>
               <span>{distance}</span>
-              {fullAddress && (
-                <>
-                  <span>•</span>
-                  <span className="truncate max-w-[150px]">{fullAddress}</span>
-                </>
-              )}
+              <span>•</span>
+              <span className="truncate max-w-[130px]">{fullAddress || venue.address || 'Loading...'}</span>
             </div>
 
             <div className="flex items-center gap-3 text-xs text-white/60">
@@ -159,19 +169,12 @@ export function TrendingCard({ venue, onClick, variant = 'compact' }: TrendingCa
           </h3>
           
           <div className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground mb-2">
-            {config && (
-              <span className="font-medium" style={{ color: config.color }}>
-                {config.label}
-              </span>
-            )}
+            <span>{categoryInfo.emoji}</span>
+            <span>{categoryInfo.label}</span>
             <span>•</span>
             <span>{distance}</span>
-            {fullAddress && (
-              <>
-                <span>•</span>
-                <span className="truncate max-w-[120px]">{fullAddress}</span>
-              </>
-            )}
+            <span>•</span>
+            <span className="truncate max-w-[100px]">{fullAddress || venue.address || 'Loading...'}</span>
           </div>
 
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
