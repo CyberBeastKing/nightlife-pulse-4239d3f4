@@ -7,6 +7,7 @@ import { PrivacySafetySection } from './PrivacySafetySection';
 import { PreferencesSection } from './PreferencesSection';
 import { DataTransparencySection } from './DataTransparencySection';
 import { CommunityStandingSection } from './CommunityStandingSection';
+import { DeleteAccountSection } from './DeleteAccountSection';
 import { SignOutButton } from './SignOutButton';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -100,6 +101,9 @@ export function ProfileView() {
         
         {/* About Hawkly - Data Transparency */}
         <DataTransparencySection />
+        
+        {/* Danger Zone - Account Deletion */}
+        <DeleteAccountSection />
         
         {/* Sign Out */}
         <SignOutButton />
