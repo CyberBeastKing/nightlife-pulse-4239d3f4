@@ -100,7 +100,6 @@ export function SocialSharingSection() {
                 key={user.id}
                 id={user.id}
                 username={user.username}
-                phone={user.recipientPhone}
                 status={user.status}
                 isMutual={user.isMutual}
                 onRemove={removeSharing}

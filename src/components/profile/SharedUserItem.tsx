@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Clock, Check, X, Phone } from 'lucide-react';
+import { Trash2, Clock, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -16,7 +16,6 @@ import {
 interface SharedUserItemProps {
   id: string;
   username: string | null;
-  phone: string | null;
   status: 'pending' | 'accepted' | 'declined';
   isMutual: boolean;
   onRemove: (id: string) => Promise<boolean>;
@@ -25,7 +24,6 @@ interface SharedUserItemProps {
 export function SharedUserItem({ 
   id, 
   username, 
-  phone, 
   status, 
   isMutual,
   onRemove 
@@ -38,7 +36,7 @@ export function SharedUserItem({
     setIsRemoving(false);
   };
 
-  const displayName = username || phone || 'Invited User';
+  const displayName = username || 'Invited User';
   
   const statusConfig = {
     pending: { icon: Clock, label: 'Pending', className: 'text-muted-foreground' },
@@ -52,11 +50,7 @@ export function SharedUserItem({
     <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border/50">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-          {phone && !username ? (
-            <Phone className="w-4 h-4 text-primary" />
-          ) : (
-            <span className="text-lg">👤</span>
-          )}
+          <span className="text-lg">👤</span>
         </div>
         <div>
           <p className="text-sm font-medium text-foreground">{displayName}</p>
