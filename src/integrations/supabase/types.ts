@@ -570,6 +570,7 @@ export type Database = {
       }
       can_submit_correction: { Args: { p_user_id: string }; Returns: boolean }
       cleanup_expired_messages: { Args: never; Returns: undefined }
+      cleanup_old_checkins: { Args: never; Returns: undefined }
       get_user_strike_count: {
         Args: { target_user_id: string }
         Returns: number
@@ -579,6 +580,7 @@ export type Database = {
         Returns: boolean
       }
       is_over_21: { Args: { dob: string }; Returns: boolean }
+      is_recent_checkin: { Args: { checkin_time: string }; Returns: boolean }
       is_user_chat_banned: {
         Args: { target_user_id: string }
         Returns: boolean
