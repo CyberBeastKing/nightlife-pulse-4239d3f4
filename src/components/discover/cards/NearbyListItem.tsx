@@ -30,7 +30,6 @@ const categoryLabels: Record<string, { emoji: string; label: string }> = {
 export function NearbyListItem({ venue, onClick }: NearbyListItemProps) {
   const vibeInfo = getVibeString(venue.vibe);
   const distance = venue.distance ? `${venue.distance.toFixed(1)} mi` : '0.5 mi';
-  const categoryInfo = categoryLabels[venue.category] || { emoji: '📍', label: venue.category };
   const reactionCount = venue.reactions.lit + venue.reactions.vibe + venue.reactions.curious;
   const isHot = venue.hot_streak !== 'quiet' && venue.hot_streak !== 'active';
   
@@ -40,6 +39,10 @@ export function NearbyListItem({ venue, onClick }: NearbyListItemProps) {
     venue.latitude,
     venue.longitude
   );
+  
+  // Only use category if it's valid (not a UUID)
+  const isValidCategory = venue.category && !venue.category.includes('-') && categoryLabels[venue.category];
+  const categoryInfo = isValidCategory ? categoryLabels[venue.category] : null;
 
   return (
     <button
@@ -65,13 +68,11 @@ export function NearbyListItem({ venue, onClick }: NearbyListItemProps) {
         </div>
         
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5 mb-1.5">
-          <span>{categoryInfo.emoji}</span>
-          <span>{categoryInfo.label}</span>
-          {fullAddress && (
-            <>
-              <span>•</span>
-              <span className="truncate max-w-[120px]">{fullAddress}</span>
-            </>
+          <MapPin className="w-3 h-3 flex-shrink-0" />
+          {fullAddress ? (
+            <span className="truncate">{fullAddress}</span>
+          ) : (
+            <span>Loading address...</span>
           )}
         </div>
 
