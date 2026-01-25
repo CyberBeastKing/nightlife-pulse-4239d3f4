@@ -1,7 +1,6 @@
 import { Bell, SlidersHorizontal, MapPin, TrendingUp, Flame } from 'lucide-react';
 
 interface DiscoverHeaderProps {
-  onSearchClick: () => void;
   onFilterClick?: () => void;
   trendingCount?: number;
   hottestSpot?: string;
@@ -9,7 +8,6 @@ interface DiscoverHeaderProps {
 }
 
 export function DiscoverHeader({ 
-  onSearchClick, 
   onFilterClick,
   trendingCount = 4,
   hottestSpot = "Leo's Italian Social",

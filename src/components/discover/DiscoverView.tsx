@@ -61,9 +61,6 @@ export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
     toast.info(`Event details - Coming soon!`);
   };
 
-  const handleSearchClick = () => {
-    toast.info('Search - Coming soon!');
-  };
 
   const handleFilterClick = () => {
     setFilterOpen(true);
@@ -88,7 +85,6 @@ export function DiscoverView({ onNavigateToMap }: DiscoverViewProps) {
   return (
     <div className="h-full flex flex-col bg-background">
       <DiscoverHeader 
-        onSearchClick={handleSearchClick} 
         onFilterClick={handleFilterClick}
         trendingCount={trendingCount}
         hottestSpot={hottestSpot}
