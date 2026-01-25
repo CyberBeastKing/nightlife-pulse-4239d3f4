@@ -166,7 +166,7 @@ export function AddPhotosSheet({ venue, isOpen, onClose }: AddPhotosSheetProps) 
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <SheetContent side="bottom" className="h-[75vh] rounded-t-3xl flex flex-col">
+      <SheetContent side="bottom" className="min-h-[75vh] rounded-t-3xl flex flex-col overflow-hidden">
         <SheetHeader className="pb-4">
           <SheetTitle className="text-lg">Add Photos</SheetTitle>
           <p className="text-sm text-muted-foreground">
