@@ -146,18 +146,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Skip button */}
-      <div className="p-4 flex justify-end">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowChoice(true)}
-          className="text-muted-foreground"
-        >
-          Skip
-        </Button>
-      </div>
-
       {/* Slide content */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-md mx-auto">
         <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-8">
