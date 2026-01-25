@@ -15,7 +15,7 @@ import { LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function ProfileView() {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, refreshProfile } = useAuth();
   const { settings, loading: settingsLoading, updateSetting } = useUserSettings();
   const navigate = useNavigate();
 
@@ -62,6 +62,7 @@ export function ProfileView() {
         <IdentitySection 
           profile={profile} 
           isLocationActive={settings.contributeLocation}
+          onProfileUpdated={refreshProfile}
         />
         
         {/* Community Standing - Only shows if strikes/ban */}
