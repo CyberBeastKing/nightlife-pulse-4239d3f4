@@ -208,6 +208,9 @@ serve(async (req) => {
         lng = coords?.lng || 0;
       }
       
+      // Get category name from joined data and convert to Hawkly slug
+      const categoryName = place.category?.name || '';
+      const categorySlug = toHawklyKey(categoryName) || 'venue';
       const categoryId = place.category?.id || null;
 
       return {
@@ -216,7 +219,8 @@ serve(async (req) => {
         address: place.google_address || place.address,
         latitude: lat,
         longitude: lng,
-        category: categoryId, // keep UUID so filtering matches chip selections
+        category: categorySlug, // Return readable slug (e.g., 'bar', 'restaurant') instead of UUID
+        category_id: categoryId, // Keep UUID for filtering if needed
         place_type: place.place_type || 'social',
         hot_streak: place.hot_streak || 'quiet',
         current_crowd_count: place.current_crowd_count || 0,

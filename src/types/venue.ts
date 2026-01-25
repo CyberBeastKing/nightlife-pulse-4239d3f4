@@ -17,12 +17,17 @@ export type Category =
   | 'brewery'
   | 'lounge'
   | 'sports_bar'
-  | 'live_music';
+  | 'live_music'
+  | 'bar_grill'
+  | 'events'
+  | 'sports_venue'
+  | 'venue'; // fallback
 
 export interface Venue {
   id: string;
   name: string;
   category: Category;
+  category_id?: string; // UUID for filtering
   place_type: PlaceType;
   hot_streak: HotStreak;
   current_crowd_count: number;
