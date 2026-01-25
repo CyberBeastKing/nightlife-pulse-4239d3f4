@@ -6,11 +6,13 @@ import { DiscoverView } from '@/components/discover/DiscoverView';
 import { ChatView } from '@/components/chat/ChatView';
 import { ProfileView } from '@/components/profile/ProfileView';
 import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
+import { OfflineOverlay } from '@/components/OfflineOverlay';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { useExternalVenues } from '@/hooks/useExternalVenues';
 import { useAutoCheckIn } from '@/hooks/useAutoCheckIn';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { Venue } from '@/types/venue';
 
 const Index = () => {
@@ -19,6 +21,7 @@ const Index = () => {
   const { user } = useAuth();
   const { updateSetting } = useUserSettings();
   const { data: venueData } = useExternalVenues();
+  const { isOnline, checkConnection } = useNetworkStatus();
   
   // Initialize automatic check-in detection
   useAutoCheckIn(venueData?.venues ?? []);
@@ -88,6 +91,9 @@ const Index = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background">
+      {/* Offline overlay */}
+      {!isOnline && <OfflineOverlay onRetry={checkConnection} />}
+
       {/* Full-bleed Map with floating UI */}
       <main className="flex-1 min-h-0 relative">
         {activeTab === 'map' && (

@@ -3,6 +3,7 @@ import { mockVenues, categories as fallbackCategories } from '@/data/mockVenues'
 import { LeafletMap, LeafletMapRef, MapBounds } from './LeafletMap';
 import { FloatingSearchBar } from './FloatingSearchBar';
 import { VenueOverlay } from './VenueOverlay';
+import { NetworkErrorBanner } from './NetworkErrorBanner';
 import { Venue, ReactionType } from '@/types/venue';
 import { useViewportVenues } from '@/hooks/useViewportVenues';
 import { useUserLocation } from '@/hooks/useUserLocation';
@@ -26,9 +27,13 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
   const { coords: userLocation } = useUserLocation();
   
   // Use viewport-based venue fetching for performance
-  const { data: externalData, isLoading, error, updateBounds } = useViewportVenues();
+  const { data: externalData, isLoading, error, refetch, updateBounds } = useViewportVenues();
   const venues = externalData?.venues && externalData.venues.length > 0 ? externalData.venues : mockVenues;
   const categories = externalData?.categories && externalData.categories.length > 0 ? externalData.categories : fallbackCategories;
+  
+  // Determine if we have a network error
+  const hasNetworkError = error instanceof Error && 
+    (error.message === 'NETWORK_ERROR' || error.message === 'OFFLINE');
 
   // Handle map bounds changes
   const handleBoundsChange = useCallback((bounds: MapBounds) => {
@@ -145,6 +150,16 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
 
   return (
     <div className="relative w-full h-full">
+      {/* Network error banner */}
+      {hasNetworkError && (
+        <div className="absolute top-20 left-0 right-0 z-30">
+          <NetworkErrorBanner 
+            message="Can't load nearby places. Check your connection."
+            onRetry={() => refetch()}
+          />
+        </div>
+      )}
+
       {/* Floating Search & Filters */}
       <FloatingSearchBar
         searchValue={searchQuery}
