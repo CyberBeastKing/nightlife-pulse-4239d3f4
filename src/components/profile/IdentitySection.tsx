@@ -1,6 +1,6 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, User } from 'lucide-react';
+import { AvatarUpload } from './AvatarUpload';
 
 interface Profile {
   id: string;
@@ -14,9 +14,10 @@ interface Profile {
 interface IdentitySectionProps {
   profile: Profile | null;
   isLocationActive: boolean;
+  onProfileUpdated?: () => void;
 }
 
-export function IdentitySection({ profile, isLocationActive }: IdentitySectionProps) {
+export function IdentitySection({ profile, isLocationActive, onProfileUpdated }: IdentitySectionProps) {
   if (!profile) {
     return (
       <div className="glass rounded-2xl p-6">
@@ -36,13 +37,13 @@ export function IdentitySection({ profile, isLocationActive }: IdentitySectionPr
   return (
     <div className="glass rounded-2xl p-6">
       <div className="flex items-center gap-4">
-        {/* Icon-based avatar - subtle, not photos */}
-        <Avatar className="w-16 h-16 border border-border">
-          <AvatarImage src={profile.avatar_url || undefined} />
-          <AvatarFallback className="bg-secondary text-muted-foreground text-xl">
-            {profile.username.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        {/* Uploadable avatar */}
+        <AvatarUpload
+          userId={profile.id}
+          currentAvatarUrl={profile.avatar_url}
+          username={profile.username}
+          onAvatarUpdated={onProfileUpdated || (() => {})}
+        />
         
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-semibold text-foreground truncate">
