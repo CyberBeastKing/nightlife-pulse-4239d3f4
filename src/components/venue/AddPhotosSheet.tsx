@@ -166,7 +166,16 @@ export function AddPhotosSheet({ venue, isOpen, onClose }: AddPhotosSheetProps) 
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <SheetContent side="bottom" className="min-h-[75vh] rounded-t-3xl flex flex-col overflow-hidden">
+      <SheetContent
+        side="bottom"
+        className={cn(
+          // Render as a centered modal overlay above the VenuePopup context.
+          "left-1/2 right-auto top-1/2 bottom-auto -translate-x-1/2 -translate-y-1/2",
+          "w-[min(520px,calc(100vw-1.5rem))] h-[75vh] max-h-[85vh]",
+          "rounded-3xl border border-border",
+          "flex flex-col overflow-hidden",
+        )}
+      >
         <SheetHeader className="pb-4">
           <SheetTitle className="text-lg">Add Photos</SheetTitle>
           <p className="text-sm text-muted-foreground">

@@ -109,7 +109,16 @@ export function ReportIssueSheet({ venue, isOpen, onClose }: ReportIssueSheetPro
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="bottom" className="min-h-[85vh] rounded-t-3xl flex flex-col overflow-hidden">
+      <SheetContent
+        side="bottom"
+        className={cn(
+          // Render as a centered modal overlay above the VenuePopup context.
+          "left-1/2 right-auto top-1/2 bottom-auto -translate-x-1/2 -translate-y-1/2",
+          "w-[min(520px,calc(100vw-1.5rem))] h-[80vh] max-h-[85vh]",
+          "rounded-3xl border border-border",
+          "flex flex-col overflow-hidden",
+        )}
+      >
         <SheetHeader className="pb-4">
           <div className="flex items-center gap-3">
             {step === 'details' && (
