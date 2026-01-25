@@ -1,5 +1,6 @@
-import { MapPin, Users, Volume2, ChevronRight, Flame } from 'lucide-react';
+import { Users, Volume2, ChevronRight, Flame, MapPin } from 'lucide-react';
 import { Venue } from '@/types/venue';
+import { useEnhancedAddress } from '@/utils/geocoding';
 
 interface NearbyListItemProps {
   venue: Venue;
@@ -32,6 +33,13 @@ export function NearbyListItem({ venue, onClick }: NearbyListItemProps) {
   const categoryInfo = categoryLabels[venue.category] || { emoji: '📍', label: venue.category };
   const reactionCount = venue.reactions.lit + venue.reactions.vibe + venue.reactions.curious;
   const isHot = venue.hot_streak !== 'quiet' && venue.hot_streak !== 'active';
+  
+  // Enhanced address with city/state
+  const { fullAddress } = useEnhancedAddress(
+    venue.address || '',
+    venue.latitude,
+    venue.longitude
+  );
 
   return (
     <button
@@ -59,10 +67,10 @@ export function NearbyListItem({ venue, onClick }: NearbyListItemProps) {
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5 mb-1.5">
           <span>{categoryInfo.emoji}</span>
           <span>{categoryInfo.label}</span>
-          {reactionCount > 0 && (
+          {fullAddress && (
             <>
               <span>•</span>
-              <span className="text-accent">🔥 {reactionCount} reactions</span>
+              <span className="truncate max-w-[120px]">{fullAddress}</span>
             </>
           )}
         </div>

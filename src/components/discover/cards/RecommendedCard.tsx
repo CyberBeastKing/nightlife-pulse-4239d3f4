@@ -1,5 +1,6 @@
 import { MapPin, Users, Volume2, Star } from 'lucide-react';
 import { Venue } from '@/types/venue';
+import { useEnhancedAddress } from '@/utils/geocoding';
 
 interface RecommendedCardProps {
   venue: Venue;
@@ -32,6 +33,13 @@ export function RecommendedCard({ venue, matchScore, reason, onClick }: Recommen
   const vibeInfo = getVibeString(venue.vibe);
   const distance = venue.distance ? `${venue.distance.toFixed(1)} mi` : '0.5 mi';
   const categoryInfo = categoryLabels[venue.category] || { emoji: '📍', label: venue.category };
+  
+  // Enhanced address with city/state
+  const { fullAddress } = useEnhancedAddress(
+    venue.address || '',
+    venue.latitude,
+    venue.longitude
+  );
 
   return (
     <button
@@ -57,11 +65,17 @@ export function RecommendedCard({ venue, matchScore, reason, onClick }: Recommen
             {venue.name}
           </h3>
           
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
+          <div className="flex items-center flex-wrap gap-1.5 text-sm text-muted-foreground mb-2">
             <span>{categoryInfo.emoji}</span>
             <span>{categoryInfo.label}</span>
             <span>•</span>
             <span>{distance}</span>
+            {fullAddress && (
+              <>
+                <span>•</span>
+                <span className="truncate max-w-[120px]">{fullAddress}</span>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
