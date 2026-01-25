@@ -1,6 +1,7 @@
 import { Users, Volume2, ChevronRight, Flame, MapPin } from 'lucide-react';
 import { Venue } from '@/types/venue';
 import { useEnhancedAddress } from '@/utils/geocoding';
+import { getCategoryStyle } from '@/utils/categoryStyles';
 
 interface NearbyListItemProps {
   venue: Venue;
@@ -15,22 +16,6 @@ function getVibeString(vibe: Venue['vibe']): string {
   return soundMap[vibe?.sound_level] || 'Moderate';
 }
 
-const categoryLabels: Record<string, { emoji: string; label: string }> = {
-  bar: { emoji: '🍺', label: 'Bar' },
-  nightclub: { emoji: '🪩', label: 'Nightclub' },
-  restaurant: { emoji: '🍽️', label: 'Restaurant' },
-  coffee: { emoji: '☕', label: 'Coffee Shop' },
-  entertainment: { emoji: '🎭', label: 'Entertainment' },
-  brewery: { emoji: '🍻', label: 'Brewery' },
-  lounge: { emoji: '🍸', label: 'Lounge' },
-  sports_bar: { emoji: '🏈', label: 'Sports Bar' },
-  live_music: { emoji: '🎵', label: 'Live Music' },
-  bar_grill: { emoji: '🍔', label: 'Bar & Grill' },
-  events: { emoji: '🎟️', label: 'Events' },
-  sports_venue: { emoji: '🏟️', label: 'Sports Venue' },
-  venue: { emoji: '📍', label: 'Venue' },
-};
-
 export function NearbyListItem({ venue, onClick }: NearbyListItemProps) {
   const vibeInfo = getVibeString(venue.vibe);
   const distance = venue.distance ? `${venue.distance.toFixed(1)} mi` : '0.5 mi';
@@ -44,8 +29,8 @@ export function NearbyListItem({ venue, onClick }: NearbyListItemProps) {
     venue.longitude
   );
   
-  // Get category info - now that edge function returns readable slugs
-  const categoryInfo = categoryLabels[venue.category] || categoryLabels.venue;
+  // Get category info from shared styles
+  const categoryInfo = getCategoryStyle(venue.category);
 
   return (
     <button

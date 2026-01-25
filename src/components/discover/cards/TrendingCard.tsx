@@ -2,6 +2,7 @@ import { Flame, TrendingUp, Zap, Star, Users, MapPin, Volume2, Sparkles } from '
 import { Venue } from '@/types/venue';
 import { cn } from '@/lib/utils';
 import { useEnhancedAddress } from '@/utils/geocoding';
+import { getCategoryStyle } from '@/utils/categoryStyles';
 
 interface TrendingCardProps {
   venue: Venue;
@@ -44,28 +45,12 @@ function getVibeString(vibe: Venue['vibe']): { sound: string; energy: string } {
   };
 }
 
-const categoryLabels: Record<string, { emoji: string; label: string }> = {
-  bar: { emoji: '🍺', label: 'Bar' },
-  nightclub: { emoji: '🪩', label: 'Nightclub' },
-  restaurant: { emoji: '🍽️', label: 'Restaurant' },
-  coffee: { emoji: '☕', label: 'Coffee Shop' },
-  entertainment: { emoji: '🎭', label: 'Entertainment' },
-  brewery: { emoji: '🍻', label: 'Brewery' },
-  lounge: { emoji: '🍸', label: 'Lounge' },
-  sports_bar: { emoji: '🏈', label: 'Sports Bar' },
-  live_music: { emoji: '🎵', label: 'Live Music' },
-  bar_grill: { emoji: '🍔', label: 'Bar & Grill' },
-  events: { emoji: '🎟️', label: 'Events' },
-  sports_venue: { emoji: '🏟️', label: 'Sports Venue' },
-  venue: { emoji: '📍', label: 'Venue' },
-};
-
 export function TrendingCard({ venue, onClick, variant = 'compact' }: TrendingCardProps) {
   const config = hotStreakConfig[venue.hot_streak];
   const vibeInfo = getVibeString(venue.vibe);
   const reactionCount = venue.reactions.lit + venue.reactions.vibe + venue.reactions.curious;
   const distance = venue.distance ? `${venue.distance.toFixed(1)} mi` : '0.5 mi';
-  const categoryInfo = categoryLabels[venue.category] || categoryLabels.venue;
+  const categoryInfo = getCategoryStyle(venue.category);
   
   // Enhanced address with city/state
   const { fullAddress } = useEnhancedAddress(
