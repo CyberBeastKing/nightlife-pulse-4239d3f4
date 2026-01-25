@@ -3,11 +3,12 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { Zap } from "lucide-react";
 
 export default function Auth() {
   const { user, profile, loading } = useAuth();
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const navigate = useNavigate();
 
   // Handle redirect after auth (for invite links)
@@ -61,31 +62,41 @@ export default function Auth() {
 
       {/* Auth Card */}
       <div className="w-full max-w-md glass rounded-2xl p-8">
-        {/* Toggle Tabs */}
-        <div className="flex mb-6 bg-secondary rounded-xl p-1">
-          <button
-            onClick={() => setMode("login")}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-              mode === "login"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => setMode("signup")}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-              mode === "signup"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Sign Up
-          </button>
-        </div>
+        {mode === "forgot" ? (
+          <ForgotPasswordForm onBack={() => setMode("login")} />
+        ) : (
+          <>
+            {/* Toggle Tabs */}
+            <div className="flex mb-6 bg-secondary rounded-xl p-1">
+              <button
+                onClick={() => setMode("login")}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  mode === "login"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setMode("signup")}
+                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  mode === "signup"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
 
-        {mode === "login" ? <LoginForm /> : <SignUpForm />}
+            {mode === "login" ? (
+              <LoginForm onForgotPassword={() => setMode("forgot")} />
+            ) : (
+              <SignUpForm />
+            )}
+          </>
+        )}
       </div>
 
       {/* Footer */}

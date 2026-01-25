@@ -13,7 +13,11 @@ const loginSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-export function LoginForm() {
+interface LoginFormProps {
+  onForgotPassword: () => void;
+}
+
+export function LoginForm({ onForgotPassword }: LoginFormProps) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -80,6 +84,16 @@ export function LoginForm() {
             required
           />
         </div>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={onForgotPassword}
+          className="text-sm text-primary hover:text-primary/80 transition-colors"
+        >
+          Forgot password?
+        </button>
       </div>
 
       <Button
