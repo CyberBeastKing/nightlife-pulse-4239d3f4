@@ -68,7 +68,7 @@ export function SignUpForm() {
         email: result.data.email,
         password: result.data.password,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/verify-email`,
           data: {
             date_of_birth: result.data.dateOfBirth,
           },
@@ -78,8 +78,8 @@ export function SignUpForm() {
       if (error) throw error;
 
       if (data.user) {
-        toast.success("Account created! Now let's set up your anonymous identity.");
-        navigate("/complete-profile");
+        toast.success("Check your email to verify your account!");
+        navigate("/verify-email");
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to create account");
