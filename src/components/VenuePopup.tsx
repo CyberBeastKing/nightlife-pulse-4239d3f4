@@ -4,6 +4,7 @@ import { X, Users, Volume2, Zap, Navigation, MessageCircle, MapPin, Loader2 } fr
 import { cn } from '@/lib/utils';
 import { useEnhancedAddress } from '@/utils/geocoding';
 import { getCategoryStyle } from '@/utils/categoryStyles';
+import { normalizeVibeData, SOUND_LEVEL_LABELS, ENERGY_LABELS } from '@/utils/vibeUtils';
 
 interface VenuePopupProps {
   venue: Venue;
@@ -25,16 +26,16 @@ const hotStreakBadge: Record<string, { label: string; class: string }> = {
 };
 
 const soundLevelIcons = {
-  quiet: { bars: 1, label: 'Quiet' },
-  moderate: { bars: 2, label: 'Moderate' },
-  loud: { bars: 3, label: 'Loud' },
-  very_loud: { bars: 4, label: 'LOUD!' },
+  quiet: { bars: 1 },
+  moderate: { bars: 2 },
+  loud: { bars: 3 },
+  very_loud: { bars: 4 },
 };
 
-const energyLabels = {
-  chill: '😌 Chill',
-  lively: '🎉 Lively',
-  electric: '⚡ Electric',
+const energyEmojis = {
+  chill: '😌',
+  lively: '🎉',
+  electric: '⚡',
 };
 
 const reactions: { type: ReactionType; emoji: string; label: string }[] = [
@@ -87,11 +88,9 @@ export function VenuePopup({
   const badge = hotStreakBadge[venue.hot_streak];
   const categoryStyle = getCategoryStyle(venue.category);
   
-  // Handle both object vibe (expected) and string vibe (from external DB)
-  const vibeData = typeof venue.vibe === 'string' 
-    ? { sound_level: venue.vibe.toLowerCase() as keyof typeof soundLevelIcons, energy: 'lively' as const }
-    : venue.vibe;
-  const soundLevel = soundLevelIcons[vibeData?.sound_level] || soundLevelIcons.moderate;
+  // Use shared vibe normalization
+  const vibeData = normalizeVibeData(venue.vibe);
+  const soundLevel = soundLevelIcons[vibeData.sound_level] || soundLevelIcons.moderate;
   
   // Crowd count display logic - protect small venues
   const getCrowdDisplay = (count: number) => {
@@ -208,7 +207,7 @@ export function VenuePopup({
                 )}
               />
             ))}
-            <span className="ml-1.5 text-xs font-medium">{soundLevel.label}</span>
+            <span className="ml-1.5 text-xs font-medium">{SOUND_LEVEL_LABELS[vibeData.sound_level]}</span>
           </div>
         </div>
         
@@ -218,7 +217,7 @@ export function VenuePopup({
             <Zap className="w-3 h-3 text-muted-foreground" />
             <span className="text-[10px] text-muted-foreground">Energy</span>
           </div>
-          <span className="text-xs font-medium">{energyLabels[vibeData?.energy] || '🎉 Lively'}</span>
+          <span className="text-xs font-medium">{energyEmojis[vibeData.energy]} {ENERGY_LABELS[vibeData.energy]}</span>
         </div>
       </div>
       
