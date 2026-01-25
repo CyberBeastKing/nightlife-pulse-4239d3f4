@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+// Reverse geocode coordinates using Nominatim (OpenStreetMap)
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
