@@ -106,6 +106,35 @@ export type Database = {
         }
         Relationships: []
       }
+      correction_votes: {
+        Row: {
+          correction_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          correction_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          correction_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correction_votes_correction_id_fkey"
+            columns: ["correction_id"]
+            isOneToOne: false
+            referencedRelation: "venue_corrections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       location_sharing: {
         Row: {
           accepted_at: string | null
@@ -238,6 +267,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_contributions: {
+        Row: {
+          contribution_points: number
+          corrections_approved: number
+          corrections_submitted: number
+          first_contribution_at: string | null
+          photos_approved: number
+          photos_submitted: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contribution_points?: number
+          corrections_approved?: number
+          corrections_submitted?: number
+          first_contribution_at?: string | null
+          photos_approved?: number
+          photos_submitted?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contribution_points?: number
+          corrections_approved?: number
+          corrections_submitted?: number
+          first_contribution_at?: string | null
+          photos_approved?: number
+          photos_submitted?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           auto_checkin_enabled: boolean
@@ -349,6 +411,93 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_corrections: {
+        Row: {
+          applied_at: string | null
+          applied_by: string | null
+          correction_type: string
+          created_at: string
+          id: string
+          matching_correction_hash: string
+          new_latitude: number | null
+          new_longitude: number | null
+          new_value: string | null
+          notes: string | null
+          old_value: string | null
+          status: string
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by?: string | null
+          correction_type: string
+          created_at?: string
+          id?: string
+          matching_correction_hash: string
+          new_latitude?: number | null
+          new_longitude?: number | null
+          new_value?: string | null
+          notes?: string | null
+          old_value?: string | null
+          status?: string
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string | null
+          correction_type?: string
+          created_at?: string
+          id?: string
+          matching_correction_hash?: string
+          new_latitude?: number | null
+          new_longitude?: number | null
+          new_value?: string | null
+          notes?: string | null
+          old_value?: string | null
+          status?: string
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: []
+      }
+      venue_photo_submissions: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          photo_url: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_url: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_url?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       anonymous_messages: {
@@ -422,6 +571,7 @@ export type Database = {
         Args: { lat1: number; lat2: number; lon1: number; lon2: number }
         Returns: number
       }
+      can_submit_correction: { Args: { p_user_id: string }; Returns: boolean }
       cleanup_expired_messages: { Args: never; Returns: undefined }
       get_user_strike_count: {
         Args: { target_user_id: string }
