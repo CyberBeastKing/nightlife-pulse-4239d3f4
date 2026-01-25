@@ -109,7 +109,7 @@ export function ReportIssueSheet({ venue, isOpen, onClose }: ReportIssueSheetPro
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
+      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl flex flex-col">
         <SheetHeader className="pb-4">
           <div className="flex items-center gap-3">
             {step === 'details' && (
@@ -135,7 +135,7 @@ export function ReportIssueSheet({ venue, isOpen, onClose }: ReportIssueSheetPro
         </SheetHeader>
 
         {step === 'select' && (
-          <div className="space-y-2 overflow-y-auto max-h-[calc(85vh-120px)]">
+          <div className="space-y-2 overflow-y-auto flex-1">
             {isLoadingCorrections && (
               <div className="flex items-center justify-center py-4">
                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
@@ -180,7 +180,7 @@ export function ReportIssueSheet({ venue, isOpen, onClose }: ReportIssueSheetPro
         )}
 
         {step === 'details' && selectedType && (
-          <div className="space-y-4 overflow-y-auto max-h-[calc(85vh-180px)]">
+          <div className="space-y-4 overflow-y-auto flex-1">
             {/* Show existing corrections for this type */}
             {matchingCorrections.length > 0 && (
               <div className="space-y-2">

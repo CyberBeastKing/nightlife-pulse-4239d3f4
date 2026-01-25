@@ -166,7 +166,7 @@ export function AddPhotosSheet({ venue, isOpen, onClose }: AddPhotosSheetProps) 
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <SheetContent side="bottom" className="h-[75vh] rounded-t-3xl">
+      <SheetContent side="bottom" className="h-[75vh] rounded-t-3xl flex flex-col">
         <SheetHeader className="pb-4">
           <SheetTitle className="text-lg">Add Photos</SheetTitle>
           <p className="text-sm text-muted-foreground">
@@ -174,7 +174,7 @@ export function AddPhotosSheet({ venue, isOpen, onClose }: AddPhotosSheetProps) 
           </p>
         </SheetHeader>
 
-        <div className="space-y-4 overflow-y-auto max-h-[calc(75vh-180px)]">
+        <div className="space-y-4 overflow-y-auto flex-1">
           {/* Photo Grid */}
           <div className="grid grid-cols-3 gap-2">
             {photos.map((photo, index) => (
