@@ -2,18 +2,11 @@ import { Users, Volume2, ChevronRight, Flame, MapPin } from 'lucide-react';
 import { Venue } from '@/types/venue';
 import { useEnhancedAddress } from '@/utils/geocoding';
 import { getCategoryStyle } from '@/utils/categoryStyles';
+import { getVibeString } from '@/utils/vibeUtils';
 
 interface NearbyListItemProps {
   venue: Venue;
   onClick: () => void;
-}
-
-function getVibeString(vibe: Venue['vibe']): string {
-  if (typeof vibe === 'string') {
-    return vibe || 'Moderate';
-  }
-  const soundMap = { quiet: 'Quiet', moderate: 'Moderate', loud: 'Loud', very_loud: 'Very Loud' };
-  return soundMap[vibe?.sound_level] || 'Moderate';
 }
 
 export function NearbyListItem({ venue, onClick }: NearbyListItemProps) {

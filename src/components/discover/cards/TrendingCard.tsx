@@ -3,6 +3,7 @@ import { Venue } from '@/types/venue';
 import { cn } from '@/lib/utils';
 import { useEnhancedAddress } from '@/utils/geocoding';
 import { getCategoryStyle } from '@/utils/categoryStyles';
+import { getVibeDetails } from '@/utils/vibeUtils';
 
 interface TrendingCardProps {
   venue: Venue;
@@ -33,21 +34,9 @@ const hotStreakConfig: Record<string, { icon: React.ReactNode; label: string; co
   },
 };
 
-function getVibeString(vibe: Venue['vibe']): { sound: string; energy: string } {
-  if (typeof vibe === 'string') {
-    return { sound: 'Moderate', energy: vibe || 'Lively' };
-  }
-  const soundMap = { quiet: 'Quiet', moderate: 'Moderate', loud: 'Loud', very_loud: 'Very Loud' };
-  const energyMap = { chill: 'Chill', lively: 'Lively', electric: 'Electric' };
-  return {
-    sound: soundMap[vibe?.sound_level] || 'Moderate',
-    energy: energyMap[vibe?.energy] || 'Lively'
-  };
-}
-
 export function TrendingCard({ venue, onClick, variant = 'compact' }: TrendingCardProps) {
   const config = hotStreakConfig[venue.hot_streak];
-  const vibeInfo = getVibeString(venue.vibe);
+  const vibeInfo = getVibeDetails(venue.vibe);
   const reactionCount = venue.reactions.lit + venue.reactions.vibe + venue.reactions.curious;
   const distance = venue.distance ? `${venue.distance.toFixed(1)} mi` : '0.5 mi';
   const categoryInfo = getCategoryStyle(venue.category);

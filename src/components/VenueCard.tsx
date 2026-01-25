@@ -1,6 +1,7 @@
 import { Venue, ReactionType } from '@/types/venue';
 import { X, MapPin, Users, Volume2, Zap, Navigation } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { normalizeVibeData, SOUND_LEVEL_LABELS, ENERGY_LABELS } from '@/utils/vibeUtils';
 
 interface VenueCardProps {
   venue: Venue;
@@ -18,16 +19,16 @@ const hotStreakBadge: Record<string, { label: string; class: string }> = {
 };
 
 const soundLevelIcons = {
-  quiet: { bars: 1, label: 'Quiet' },
-  moderate: { bars: 2, label: 'Moderate' },
-  loud: { bars: 3, label: 'Loud' },
-  very_loud: { bars: 4, label: 'LOUD!' },
+  quiet: { bars: 1 },
+  moderate: { bars: 2 },
+  loud: { bars: 3 },
+  very_loud: { bars: 4 },
 };
 
-const energyLabels = {
-  chill: '😌 Chill',
-  lively: '🎉 Lively',
-  electric: '⚡ Electric',
+const energyEmojis = {
+  chill: '😌',
+  lively: '🎉',
+  electric: '⚡',
 };
 
 const reactions: { type: ReactionType; emoji: string; label: string }[] = [
@@ -40,10 +41,8 @@ const reactions: { type: ReactionType; emoji: string; label: string }[] = [
 export function VenueCard({ venue, onClose, onReact, onCheckIn, onNavigate }: VenueCardProps) {
   const badge = hotStreakBadge[venue.hot_streak];
   
-  // Handle both object vibe (expected) and string vibe (from external DB)
-  const vibeData = typeof venue.vibe === 'string' 
-    ? { sound_level: venue.vibe.toLowerCase() as keyof typeof soundLevelIcons, energy: 'lively' as const }
-    : venue.vibe;
+  // Use shared vibe normalization
+  const vibeData = normalizeVibeData(venue.vibe);
   const soundLevel = soundLevelIcons[vibeData.sound_level] || soundLevelIcons.moderate;
   
   return (
@@ -106,7 +105,7 @@ export function VenueCard({ venue, onClose, onReact, onCheckIn, onNavigate }: Ve
                 )}
               />
             ))}
-            <span className="ml-2 text-sm font-medium">{soundLevel.label}</span>
+            <span className="ml-2 text-sm font-medium">{SOUND_LEVEL_LABELS[vibeData.sound_level]}</span>
           </div>
         </div>
         
@@ -116,7 +115,7 @@ export function VenueCard({ venue, onClose, onReact, onCheckIn, onNavigate }: Ve
             <Zap className="w-4 h-4 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">Energy</span>
           </div>
-          <span className="text-sm font-medium">{energyLabels[vibeData.energy] || '🎉 Lively'}</span>
+          <span className="text-sm font-medium">{energyEmojis[vibeData.energy]} {ENERGY_LABELS[vibeData.energy]}</span>
         </div>
       </div>
       

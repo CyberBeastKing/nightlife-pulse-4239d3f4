@@ -2,20 +2,13 @@ import { MapPin, Users, Volume2, Star } from 'lucide-react';
 import { Venue } from '@/types/venue';
 import { useEnhancedAddress } from '@/utils/geocoding';
 import { getCategoryStyle } from '@/utils/categoryStyles';
+import { getVibeString } from '@/utils/vibeUtils';
 
 interface RecommendedCardProps {
   venue: Venue;
   matchScore: number;
   reason?: string;
   onClick: () => void;
-}
-
-function getVibeString(vibe: Venue['vibe']): string {
-  if (typeof vibe === 'string') {
-    return vibe || 'Moderate';
-  }
-  const soundMap = { quiet: 'Quiet', moderate: 'Moderate', loud: 'Loud', very_loud: 'Very Loud' };
-  return soundMap[vibe?.sound_level] || 'Moderate';
 }
 
 export function RecommendedCard({ venue, matchScore, reason, onClick }: RecommendedCardProps) {
