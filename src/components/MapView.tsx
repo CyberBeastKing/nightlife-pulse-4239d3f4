@@ -63,7 +63,12 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
         return false;
       }
       
-      if (!selectedCategories.has(venue.category)) {
+      // Match against both category slug AND category_id UUID
+      // This handles both local mock data (uses slugs) and API data (uses UUIDs for chips)
+      const matchesBySlug = selectedCategories.has(venue.category);
+      const matchesByUUID = venue.category_id && selectedCategories.has(venue.category_id);
+      
+      if (!matchesBySlug && !matchesByUUID) {
         return false;
       }
 
