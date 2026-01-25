@@ -115,10 +115,15 @@ export function MapView({ searchQuery, selectedCategories, onSearchChange, onCat
     });
   }, [onSearchChange]);
 
-  // Handle venue selection from map marker click
+  // Handle venue selection from map marker click (also reopens popup if same venue tapped)
   const handleVenueSelectFromMap = useCallback((venue: Venue | null) => {
-    setSelectedVenue(venue);
-    setIsPopupOpen(venue !== null);
+    if (venue) {
+      setSelectedVenue(venue);
+      setIsPopupOpen(true); // Always open popup when marker is tapped
+    } else {
+      setSelectedVenue(null);
+      setIsPopupOpen(false);
+    }
   }, []);
 
   // Close popup but keep marker visible and map focused
